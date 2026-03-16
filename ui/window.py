@@ -177,8 +177,6 @@ class SimulatedPythonWindow:
             self._stop()
         elif bx + 214 <= mx <= bx + 214 + 72:
             self._clear()
-        elif bx + 294 <= mx <= bx + 294 + 80:
-            self._show_tutorial()
 
     # ── Teclado ──────────────────────────────────────
     def _handle_key(self, event: pygame.event.Event):
@@ -315,9 +313,6 @@ class SimulatedPythonWindow:
         self.cur_ln   = self.cur_col = self.scroll = 0
         self.out      = []
         self.ac_visible = False
-
-    def _show_tutorial(self):
-        self.out = [(ln, "ok") for ln in TUTORIAL_TXT.split("\n")]
 
     # ── Autocomplete ─────────────────────────────────
     def _word_before_cursor(self) -> str:
@@ -489,8 +484,6 @@ class SimulatedPythonWindow:
             (255, 100, 100) if self.running else (100, 80, 80))
         bx += 98
         btn("Limpiar",             bx,        72, (48, 48, 82))
-        bx += 80
-        btn("Tutorial",            bx,        72, (28, 62, 88))
 
         # Indicador RUNNING
         if self.running:

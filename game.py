@@ -243,7 +243,8 @@ class Game:
         secs_left = int((1.0 - eat_pct) * 20)
         eat_lbl = self.font_sm.render(
             f"Prox.pez: {secs_left}s  "
-            f"({'come' if fish_in_store > 0 else 'sin peces!'})",
+            f"({'come' if fish_in_store > 0 else 'sin peces!'})  "
+            f"drain x{1.0 + (self.colony.alive_count - 1) * 0.5:.1f}",
             True, eat_col)
         self.screen.blit(eat_lbl, (BAR_X + BAR_W + 6, BAR_Y + BAR_H2 + 1))
 

@@ -24,8 +24,8 @@ class Colony:
         self.death_log: list[str] = []
 
         self._last_death_ms:   float = 0.0
-        # Acumulador de tiempo para el consumo de peces
         self._fish_timer_sec: float = 0.0
+        self.alive_count: int = 1
 
     # ── Nidos ───────────────────────────────────────
     def build_nido(self, row: int, col: int):
@@ -43,6 +43,8 @@ class Colony:
         Devuelve lista de pinguinos que deben morir.
         """
         # Avanzar el temporizador de consumo de peces
+        alive_count = max(1, sum(1 for p in penguins if p.alive))
+        self.alive_count = alive_count   # para el HUD
         self._fish_timer_sec += dt_sec
         ate_fish = False
 
@@ -54,13 +56,15 @@ class Colony:
                                   self.hunger + HUNGER_PER_FISH)
                 ate_fish = True
 
-        # Si no hubo pez en este ciclo, la barra baja continuamente
+        # Si no hubo pez en este ciclo, la barra baja — escalada por pinguinos
+        # Cada pinguino adicional aumenta el drain: 1 ping=1x, 2=1.5x, 3=2x...
         if not ate_fish:
             fish_en_almacen = (self.inventory.obtener("Pez") > 0
                                if self.inventory else False)
             if not fish_en_almacen:
+                drain_mult = 1.0 + (alive_count - 1) * 0.5
                 self.hunger = max(0.0,
-                                  self.hunger - HUNGER_DRAIN_SEC * dt_sec)
+                                  self.hunger - HUNGER_DRAIN_SEC * drain_mult * dt_sec)
 
         # Matar pinguinos si la barra llega a 0
         to_kill = []
