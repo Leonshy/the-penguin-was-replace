@@ -96,5 +96,7 @@ PENGUIN_COLORS = [
     (200, 200,  80),
 ]
 
-# ── Posiciones de computadoras en el mundo ──────────────
-COMP_POSITIONS = [(3, 3), (3, 10), (3, 17), (10, 3), (10, 10)]
+# ── Solo la zona de PESCA tiene computadora ─────────────
+# Coordenadas (row, col) segun el nuevo layout:
+#   Pesca: r6-9, c7-13  → PC en (7, 10)
+COMP_POSITIONS = [(7, 10)]
