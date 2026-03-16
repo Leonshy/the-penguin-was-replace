@@ -33,6 +33,13 @@ AC_DB = [
         "doc":    "Navega al almacen y deposita\n1 unidad del material.\nValores: 'Pez' | 'Madera' | 'Hielo'",
     },
     {
+        "label":  "construir_nido",
+        "kind":   "fn",
+        "insert": "construir_nido()",
+        "detail": "construir_nido() -> None",
+        "doc":    "Construye un nido cyborg en la fabrica.\nCosto: 50 Madera + 100 Hielo\ndel almacen global.",
+    },
+    {
         "label":  "crear_pinguino",
         "kind":   "fn",
         "insert": "crear_pinguino()",
@@ -229,7 +236,8 @@ KEYWORDS = frozenset([
     'break', 'continue', 'pass', 'range',
 ])
 GAME_FNS = frozenset([
-    'pescar', 'talar', 'picar_hielo', 'almacenar', 'crear_pinguino',
+    'pescar', 'talar', 'picar_hielo', 'almacenar',
+    'crear_pinguino', 'construir_nido',
 ])
 BUILTINS = frozenset([
     'print', 'len', 'int', 'str', 'float', 'list', 'bool',

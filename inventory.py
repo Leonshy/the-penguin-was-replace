@@ -1,6 +1,9 @@
 # ═══════════════════════════════════════════════════════
 #  CYBORG PENGUINS — inventory.py
+#  Almacen global con capacidad maxima de 500 por recurso
 # ═══════════════════════════════════════════════════════
+
+STORAGE_MAX = 500   # capacidad maxima del almacen por recurso
 
 
 class Resource:
@@ -9,7 +12,7 @@ class Resource:
         self.cantidad = cantidad
 
     def agregar(self, n: int = 1):
-        self.cantidad += n
+        self.cantidad = min(STORAGE_MAX, self.cantidad + n)
 
     def consumir(self, n: int = 1) -> bool:
         if self.cantidad >= n:
@@ -17,8 +20,11 @@ class Resource:
             return True
         return False
 
+    def is_full(self) -> bool:
+        return self.cantidad >= STORAGE_MAX
+
     def __repr__(self):
-        return f"{self.nombre}:{self.cantidad}"
+        return f"{self.nombre}:{self.cantidad}/{STORAGE_MAX}"
 
 
 class Fish(Resource):
@@ -39,9 +45,18 @@ class Inventory:
             "Hielo":  IceRes(),
         }
 
-    def agregar(self, nombre: str, qty: int = 1):
-        if nombre in self.rs:
-            self.rs[nombre].agregar(qty)
+    def agregar(self, nombre: str, qty: int = 1) -> int:
+        """Agrega qty al recurso. Devuelve cuanto se agrego realmente."""
+        r = self.rs.get(nombre)
+        if r is None:
+            return 0
+        before = r.cantidad
+        r.agregar(qty)
+        return r.cantidad - before
+
+    def consumir(self, nombre: str, qty: int = 1) -> bool:
+        r = self.rs.get(nombre)
+        return r.consumir(qty) if r else False
 
     def obtener(self, nombre: str) -> int:
         r = self.rs.get(nombre)
@@ -49,5 +64,6 @@ class Inventory:
 
     def hud(self) -> str:
         return "   ".join(
-            f"{r.nombre}: {r.cantidad}" for r in self.rs.values()
+            f"{r.nombre}:{r.cantidad}/{STORAGE_MAX}"
+            for r in self.rs.values()
         )

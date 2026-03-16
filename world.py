@@ -42,6 +42,7 @@ def get_zone(row: int, col: int) -> str:
 TILE_BLOCKERS = {"agua", "arbol", "mina"}
 
 TILE_LABEL: dict[str, tuple[str, tuple]] = {
+    "nido":        ("N",   (220, 160,  80)),
     "computadora": ("PC",  (160, 170, 255)),
     "arbol":       ("Y",   ( 90, 200,  90)),
     "mina":        ("#",   (160, 165, 190)),
@@ -214,6 +215,11 @@ class World:
                         prev[(nr, nc)] = (r, c)
                         q.append((nr, nc))
         return []
+
+    def build_nido(self, row: int, col: int):
+        """Coloca un tile de nido cyborg en la posicion dada."""
+        if 0 <= row < WH and 0 <= col < WW:
+            self.grid[row][col] = Tile("nido")
 
     def zone_name(self, row: int, col: int) -> str:
         if 0 <= row < WH and 0 <= col < WW:

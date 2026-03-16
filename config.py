@@ -44,6 +44,7 @@ TILE_COLORS = {
     "almacen"    : ( 55,  50,  95),
     "fabrica"    : ( 38, 112, 122),
     "computadora": ( 48,  55, 192),
+    "nido":         (120,  80,  40),
 }
 
 # ── Paleta IDE ──────────────────────────────────────────
@@ -100,3 +101,21 @@ PENGUIN_COLORS = [
 # Coordenadas (row, col) segun el nuevo layout:
 #   Pesca: r6-9, c7-13  → PC en (7, 10)
 COMP_POSITIONS = [(7, 10)]
+
+# ── Hambre ──────────────────────────────────────────────
+HUNGER_MAX        = 100.0  # valor maximo de la barra
+HUNGER_PER_FISH   = 20.0   # puntos que recupera cada pez consumido
+HUNGER_DRAIN_SEC  = 3.0    # puntos que baja por segundo cuando NO hay peces
+
+# Cada cuantos segundos la colonia intenta comer 1 pez del almacen
+FISH_CONSUME_SEC  = 10.0   # 1 pez cada 10 segundos
+
+# Tiempo en ms entre muertes por hambre (cuando hunger=0 y >1 pinguino)
+HUNGER_DEATH_MS   = 10_000
+
+# ── Nido cyborg ────────────────────────────────────────
+NIDO_COST_MADERA = 50
+NIDO_COST_HIELO  = 100
+
+# Probabilidad de pescar (0.0 - 1.0)
+FISH_PROBABILITY = 0.40
