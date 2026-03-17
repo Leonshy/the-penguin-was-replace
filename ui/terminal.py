@@ -243,6 +243,12 @@ class ComputerTerminal:
         self.inp    = ""
         self._history: list[str] = []
 
+        # Posicion y drag
+        self.rect   = pygame.Rect(30, 50, 510, 460)
+        self._drag  = False
+        self._dox   = 0
+        self._doy   = 0
+
         # Inicializar con pantalla de bienvenida
         self._boot_screen()
 
@@ -287,6 +293,30 @@ class ComputerTerminal:
     def handle_event(self, event: pygame.event.Event):
         if not self.show:
             return
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mx, my = event.pos
+            title_r = pygame.Rect(self.rect.x, self.rect.y,
+                                  self.rect.w, 20)
+            if title_r.collidepoint(mx, my):
+                self._drag = True
+                self._dox  = mx - self.rect.x
+                self._doy  = my - self.rect.y
+                return
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self._drag = False
+
+        elif event.type == pygame.MOUSEMOTION:
+            if self._drag:
+                mx, my = event.pos
+                from config import WIN_W, WIN_H
+                self.rect.x = max(0, min(mx - self._dox,
+                                         WIN_W - self.rect.w))
+                self.rect.y = max(0, min(my - self._doy,
+                                         WIN_H - self.rect.h))
+                return
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.show = False
@@ -440,7 +470,7 @@ class ComputerTerminal:
         if not self.show:
             return
 
-        rect = pygame.Rect(30, 50, 510, 460)
+        rect = self.rect
 
         # Fondo semitransparente
         bg = pygame.Surface((rect.w, rect.h))
