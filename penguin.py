@@ -213,13 +213,12 @@ class Penguin:
 
     # ── Comandos ────────────────────────────────────
     def cmd_pescar(self):
-        if self.personal_inv["Pez"] >= PERSONAL_MAX:
-            self.interp.log(
-                f"Mochila de Pez llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
-                "Almacenalo primero.")
-            return
         def _do():
-            # 40% de probabilidad de exito
+            if self.personal_inv["Pez"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Pez') primero.")
+                return
             if random.random() < FISH_PROBABILITY:
                 self.personal_inv["Pez"] += 1
                 n = self.personal_inv["Pez"]
@@ -231,15 +230,15 @@ class Penguin:
         self._enqueue_and_wait("costa", _do)
 
     def cmd_talar(self):
-        if self.personal_inv["Madera"] >= PERSONAL_MAX:
-            self.interp.log(
-                f"Mochila de Madera llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
-                "Almacenalo primero.")
-            return
         t = self.world.find_nearest(*self._queue_end_pos(), "arbol")
         if t is None:
             self.interp.log("No hay arboles disponibles."); return
         def _do():
+            if self.personal_inv["Madera"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Madera') primero.")
+                return
             pos = (self.row, self.col)
             if self.world.get_tile(*pos).tipo == "arbol":
                 self.world.cut_tree(pos[0], pos[1], pygame.time.get_ticks())
@@ -261,12 +260,12 @@ class Penguin:
                 raise ScriptStopped()
 
     def cmd_picar_hielo(self):
-        if self.personal_inv["Hielo"] >= PERSONAL_MAX:
-            self.interp.log(
-                f"Mochila de Hielo llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
-                "Almacenalo primero.")
-            return
         def _do():
+            if self.personal_inv["Hielo"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Hielo') primero.")
+                return
             self.personal_inv["Hielo"] += 1
             n = self.personal_inv["Hielo"]
             self.interp.log(
