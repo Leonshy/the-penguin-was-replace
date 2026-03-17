@@ -7,8 +7,8 @@
 T      = 64          # tile size (px)
 WW     = 21          # world width  (tiles)
 WH     = 14          # world height (tiles)
-VW     = 10          # viewport cols visibles
-VH     = 9           # viewport rows visibles
+VW     = 20          # viewport cols visibles
+VH     = 18           # viewport rows visibles
 WIN_W  = VW * T      # 640 px
 HUD_H  = 80          # barra superior
 BAR_H  = 20          # barra inferior

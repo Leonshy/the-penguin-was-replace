@@ -17,7 +17,6 @@ from config import (
     AC_KIND_STYLE,
 )
 from ui.autocomplete import AC_DB, tokenize
-from ui.terminal import TUTORIAL_TXT
 
 _LINE_H  = 17
 _CHAR_W  = 8

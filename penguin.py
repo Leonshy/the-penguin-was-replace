@@ -127,6 +127,7 @@ class Penguin:
         self.win       = None
         self.selected  = False
         self._wants_new = False
+        self.progress = None   # set by Game._spawn
         self.alive     = True
         self.color     = PENGUIN_COLORS[(idx - 1) % len(PENGUIN_COLORS)]
 
@@ -225,6 +226,9 @@ class Penguin:
                 self.interp.log(
                     f"Pescado! Pez: {n}/{PERSONAL_MAX}"
                     + (" — LLENO!" if n >= PERSONAL_MAX else ""))
+                # Notificar progreso
+                if hasattr(self, "progress") and self.progress:
+                    self.progress.on_fish_caught()
             else:
                 self.interp.log("Se escapo el pez... (60% de falla)")
         self._enqueue_and_wait("costa", _do)
