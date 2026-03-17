@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════
 
 # ── Mundo ───────────────────────────────────────────────
-T      = 48          # tile size
+T      = 64          # tile size
 WW     = 21          # world width  (tiles)
 WH     = 14          # world height (tiles)
 VW     = 15          # viewport cols (era 10)
