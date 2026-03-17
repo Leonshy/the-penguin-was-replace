@@ -1,62 +1,65 @@
 # ═══════════════════════════════════════════════════════
 #  CYBORG PENGUINS — config.py
-#  Constantes globales, colores y paleta
+#  Resolución grande + paleta GBA mejorada
 # ═══════════════════════════════════════════════════════
 
 # ── Mundo ───────────────────────────────────────────────
-T      = 64          # tile size (px)
+T      = 48          # tile size
 WW     = 21          # world width  (tiles)
 WH     = 14          # world height (tiles)
-VW     = 10          # viewport cols visibles
-VH     = 9           # viewport rows visibles
-WIN_W  = VW * T      # 640 px
-HUD_H  = 80          # barra superior
-BAR_H  = 20          # barra inferior
+VW     = 14          # viewport cols (era 10)
+VH     = 11          # viewport rows (era 9)
+WIN_W  = VW * T      # 672 px
+HUD_H  = 88
+BAR_H  = 24
 WIN_H  = VH * T + HUD_H + BAR_H
 FPS    = 30
 
-# ── Velocidad del pinguino ──────────────────────────────
-MOVE_DELAY   = 4     # ticks por paso (30fps → ~7 pasos/seg)
-ACTION_DELAY = 8     # ticks extra al llegar al destino (animacion de accion)
+# ── Velocidad ───────────────────────────────────────────
+MOVE_DELAY   = 3
+ACTION_DELAY = 8
 
 # ── Paleta UI ───────────────────────────────────────────
-CUI_BG     = ( 10,  10,  20)
-CUI_WHITE  = (220, 220, 235)
-CUI_CYAN   = (  0, 210, 210)
-CUI_GREEN  = ( 50, 200,  80)
-CUI_GRAY   = ( 80,  80, 100)
-CUI_ORANGE = (255, 160,  40)
-CUI_RED    = (220,  60,  60)
+CUI_BG     = (  6,   8,  18)
+CUI_WHITE  = (224, 228, 248)
+CUI_CYAN   = (  0, 220, 220)
+CUI_GREEN  = ( 48, 210,  88)
+CUI_GRAY   = ( 72,  76, 104)
+CUI_ORANGE = (255, 168,  40)
+CUI_RED    = (224,  56,  56)
 CUI_BLACK  = (  0,   0,   0)
+CUI_YELLOW = (248, 232,  48)
+CUI_PURPLE = (180,  80, 220)
+CUI_BLUE   = ( 48, 120, 255)
 
 # ── Colores de tiles ────────────────────────────────────
 TILE_COLORS = {
-    "f_pesca"    : ( 12,  32,  50),
-    "f_bosque"   : ( 10,  38,  14),
-    "f_mina"     : ( 30,  30,  42),
-    "f_almacen"  : ( 24,  18,  50),
-    "f_fabrica"  : ( 10,  38,  46),
-    "f_yermo"    : ( 22,  22,  28),
-    "agua"       : ( 18,  55, 168),
-    "costa"      : (  0, 148, 148),
-    "arbol"      : ( 28, 118,  28),
-    "mina"       : ( 78,  82, 108),
-    "almacen"    : ( 55,  50,  95),
-    "fabrica"    : ( 38, 112, 122),
-    "computadora": ( 48,  55, 192),
-    "nido":         (120,  80,  40),
+    "f_pesca"    : (  8,  28,  56),
+    "f_bosque"   : (  8,  36,  12),
+    "f_mina"     : ( 24,  24,  40),
+    "f_almacen"  : ( 20,  14,  48),
+    "f_fabrica"  : (  8,  36,  44),
+    "f_yermo"    : ( 18,  18,  26),
+    "agua"       : ( 16,  52, 160),
+    "costa"      : (  0, 136, 136),
+    "arbol"      : ( 24, 108,  24),
+    "mina"       : ( 72,  76, 104),
+    "almacen"    : ( 52,  44,  96),
+    "fabrica"    : ( 32, 104, 116),
+    "computadora": ( 40,  48, 184),
+    "nido"       : (112,  72,  32),
 }
 
-# ── Paleta IDE ──────────────────────────────────────────
-IDE_BG     = ( 30,  31,  48)
-IDE_DARK   = ( 22,  22,  38)
-IDE_TITLE  = ( 38,  40,  62)
-IDE_HL     = ( 38,  44,  70)
-IDE_LNBG   = ( 22,  24,  40)
-IDE_BORDER = ( 68,  74, 122)
-IDE_CURSOR = (210, 218, 255)
-IDE_SEP    = ( 46,  50,  86)
-IDE_OUT    = ( 14,  15,  28)
+# ── IDE ─────────────────────────────────────────────────
+IDE_BG     = ( 28,  30,  46)
+IDE_DARK   = ( 20,  22,  36)
+IDE_TITLE  = ( 36,  38,  60)
+IDE_HL     = ( 36,  42,  68)
+IDE_LNBG   = ( 20,  22,  38)
+IDE_BORDER = ( 64,  70, 120)
+IDE_CURSOR = (210, 220, 255)
+IDE_SEP    = ( 44,  48,  84)
+IDE_OUT    = ( 12,  14,  26)
 
 # ── Syntax highlighting ─────────────────────────────────
 SYN_KW  = (197, 134, 192)
@@ -71,14 +74,14 @@ SYN_OK  = ( 78, 201, 176)
 SYN_ERR = (244,  71,  71)
 
 # ── Autocomplete ────────────────────────────────────────
-AC_BG      = ( 32,  33,  52)
-AC_BORDER  = ( 68,  74, 122)
-AC_SEL_BG  = ( 50,  90, 148)
-AC_DOC_BG  = ( 25,  26,  42)
-AC_ITEM_H  = 20
+AC_BG      = ( 30,  32,  50)
+AC_BORDER  = ( 64,  70, 120)
+AC_SEL_BG  = ( 48,  88, 148)
+AC_DOC_BG  = ( 22,  24,  40)
+AC_ITEM_H  = 22
 AC_MAX_VIS = 8
-AC_DROP_W  = 230
-AC_DOC_W   = 240
+AC_DROP_W  = 250
+AC_DOC_W   = 260
 
 AC_KIND_STYLE = {
     "fn":    ((255, 210,  70), "f"),
@@ -97,25 +100,15 @@ PENGUIN_COLORS = [
     (200, 200,  80),
 ]
 
-# ── Solo la zona de PESCA tiene computadora ─────────────
-# Coordenadas (row, col) segun el nuevo layout:
-#   Pesca: r6-9, c7-13  → PC en (7, 10)
 COMP_POSITIONS = [(7, 10)]
 
 # ── Hambre ──────────────────────────────────────────────
-HUNGER_MAX        = 100.0  # valor maximo de la barra
-HUNGER_PER_FISH   = 20.0   # puntos que recupera cada pez consumido
-HUNGER_DRAIN_SEC  = 3.0    # puntos que baja por segundo cuando NO hay peces
-
-# Cada cuantos segundos la colonia intenta comer 1 pez del almacen
-FISH_CONSUME_SEC  = 10.0   # 1 pez cada 10 segundos
-
-# Tiempo en ms entre muertes por hambre (cuando hunger=0 y >1 pinguino)
+HUNGER_MAX        = 100.0
+HUNGER_PER_FISH   = 20.0
+HUNGER_DRAIN_SEC  = 3.0
+FISH_CONSUME_SEC  = 10.0
 HUNGER_DEATH_MS   = 10_000
 
-# ── Nido cyborg ────────────────────────────────────────
 NIDO_COST_MADERA = 50
 NIDO_COST_HIELO  = 100
-
-# Probabilidad de pescar (0.0 - 1.0)
 FISH_PROBABILITY = 0.40
