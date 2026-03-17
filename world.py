@@ -104,6 +104,17 @@ ZONE_NAMES = {
 }
 
 
+# ── Matriz de la fabrica ────────────────────────────────
+# La zona fabrica ocupa r0-5, c14-20 en el mundo.
+# La cuadricula construible es 5 columnas x 4 filas:
+#   col de juego 0-4  → world_col = 15 + col_juego
+#   fila de juego 0-3 → world_row =  1 + fila_juego
+FACTORY_COLS  = 5   # columnas de la matriz (0..4)
+FACTORY_ROWS  = 4   # filas de la matriz (0..3)
+FACTORY_WC0   = 15  # primera columna world de la cuadricula
+FACTORY_WR0   = 1   # primera fila world de la cuadricula
+
+
 class World:
     def __init__(self):
         self.grid: list[list[Tile]] = [
@@ -123,10 +134,9 @@ class World:
             for c in range(8, 13):
                 g[r][c] = Tile("almacen")
 
-        # FABRICA interior (r1-4, c15-19)
-        for r in range(1, 5):
-            for c in range(15, 20):
-                g[r][c] = Tile("fabrica")
+        # FABRICA: zona vacia — el jugador construye nidos con construir_nido(x, y)
+        # Matriz 5x4: columnas 0-4 → world c15-19, filas 0-3 → world r1-4
+        # (no se colocan tiles fabrica aqui, el suelo es f_fabrica)
 
         # MINA (r7-10, c1-5)
         for r in range(7, 11):
@@ -217,9 +227,34 @@ class World:
         return []
 
     def build_nido(self, row: int, col: int):
-        """Coloca un tile de nido cyborg en la posicion dada."""
+        """Coloca un tile de nido en coordenadas world (uso interno)."""
         if 0 <= row < WH and 0 <= col < WW:
             self.grid[row][col] = Tile("nido")
+
+    def place_nido(self, mx: int, my: int) -> str:
+        """
+        Coloca un nido en la posicion de la MATRIZ de la fabrica.
+        mx = columna de la matriz (0 .. FACTORY_COLS-1)
+        my = fila    de la matriz (0 .. FACTORY_ROWS-1)
+        Devuelve "ok" o un mensaje de error.
+        """
+        if not (0 <= mx < FACTORY_COLS):
+            return (f"Columna {mx} fuera de rango. "
+                    f"Usa 0 a {FACTORY_COLS-1}.")
+        if not (0 <= my < FACTORY_ROWS):
+            return (f"Fila {my} fuera de rango. "
+                    f"Usa 0 a {FACTORY_ROWS-1}.")
+        wr = FACTORY_WR0 + my
+        wc = FACTORY_WC0 + mx
+        tile = self.grid[wr][wc]
+        if tile.tipo == "nido":
+            return f"La celda ({mx}, {my}) ya tiene un nido."
+        self.grid[wr][wc] = Tile("nido")
+        return "ok"
+
+    def factory_cell_world(self, mx: int, my: int) -> tuple[int, int]:
+        """Convierte coordenadas de matriz a coordenadas world."""
+        return (FACTORY_WR0 + my, FACTORY_WC0 + mx)
 
     def zone_name(self, row: int, col: int) -> str:
         if 0 <= row < WH and 0 <= col < WW:

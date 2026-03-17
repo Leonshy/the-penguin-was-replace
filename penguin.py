@@ -127,6 +127,7 @@ class Penguin:
         self.win       = None
         self.selected  = False
         self._wants_new = False
+        self.progress = None   # set by Game._spawn
         self.alive     = True
         self.color     = PENGUIN_COLORS[(idx - 1) % len(PENGUIN_COLORS)]
 
@@ -213,33 +214,35 @@ class Penguin:
 
     # ── Comandos ────────────────────────────────────
     def cmd_pescar(self):
-        if self.personal_inv["Pez"] >= PERSONAL_MAX:
-            self.interp.log(
-                f"Mochila de Pez llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
-                "Almacenalo primero.")
-            return
         def _do():
-            # 40% de probabilidad de exito
+            if self.personal_inv["Pez"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Pez') primero.")
+                return
             if random.random() < FISH_PROBABILITY:
                 self.personal_inv["Pez"] += 1
                 n = self.personal_inv["Pez"]
                 self.interp.log(
                     f"Pescado! Pez: {n}/{PERSONAL_MAX}"
                     + (" — LLENO!" if n >= PERSONAL_MAX else ""))
+                # Notificar progreso
+                if hasattr(self, "progress") and self.progress:
+                    self.progress.on_fish_caught()
             else:
                 self.interp.log("Se escapo el pez... (60% de falla)")
         self._enqueue_and_wait("costa", _do)
 
     def cmd_talar(self):
-        if self.personal_inv["Madera"] >= PERSONAL_MAX:
-            self.interp.log(
-                f"Mochila de Madera llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
-                "Almacenalo primero.")
-            return
         t = self.world.find_nearest(*self._queue_end_pos(), "arbol")
         if t is None:
             self.interp.log("No hay arboles disponibles."); return
         def _do():
+            if self.personal_inv["Madera"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Madera') primero.")
+                return
             pos = (self.row, self.col)
             if self.world.get_tile(*pos).tipo == "arbol":
                 self.world.cut_tree(pos[0], pos[1], pygame.time.get_ticks())
@@ -261,12 +264,12 @@ class Penguin:
                 raise ScriptStopped()
 
     def cmd_picar_hielo(self):
-        if self.personal_inv["Hielo"] >= PERSONAL_MAX:
-            self.interp.log(
-                f"Mochila de Hielo llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
-                "Almacenalo primero.")
-            return
         def _do():
+            if self.personal_inv["Hielo"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Hielo') primero.")
+                return
             self.personal_inv["Hielo"] += 1
             n = self.personal_inv["Hielo"]
             self.interp.log(
@@ -292,45 +295,81 @@ class Penguin:
                 f"Almacen: {total}/500")
         self._enqueue_and_wait("almacen", _do)
 
-    def cmd_construir_nido(self):
+    def cmd_construir_nido(self, mx: int = 0, my: int = 0):
         """
-        Construye un nido cyborg en la zona de fabrica.
-        Cuesta 50 Madera + 100 Hielo del almacen global.
+        Construye un nido en la MATRIZ de la fabrica.
+        Parametros:
+          mx = columna (0-4)
+          my = fila    (0-3)
+        Costo: 50 Madera + 100 Hielo del almacen global.
+
+        Ejemplo: construir_nido(0, 0)  -> celda (col=0, fila=0)
+                 construir_nido(2, 1)  -> celda (col=2, fila=1)
         """
-        # Verificar recursos ANTES de moverse
+        # Validar rango antes de moverse
+        from world import FACTORY_COLS, FACTORY_ROWS
+        if not (0 <= mx < FACTORY_COLS):
+            self.interp.log(
+                f"ERROR: columna {mx} fuera de rango. "
+                f"Usa 0 a {FACTORY_COLS - 1}.")
+            return
+        if not (0 <= my < FACTORY_ROWS):
+            self.interp.log(
+                f"ERROR: fila {my} fuera de rango. "
+                f"Usa 0 a {FACTORY_ROWS - 1}.")
+            return
+        # Verificar recursos
         if self.inventory.obtener("Madera") < NIDO_COST_MADERA:
             self.interp.log(
-                f"Necesitas {NIDO_COST_MADERA} Madera en el almacen "
+                f"Necesitas {NIDO_COST_MADERA} Madera "
                 f"(tienes {self.inventory.obtener('Madera')}).")
             return
         if self.inventory.obtener("Hielo") < NIDO_COST_HIELO:
             self.interp.log(
-                f"Necesitas {NIDO_COST_HIELO} Hielo en el almacen "
+                f"Necesitas {NIDO_COST_HIELO} Hielo "
                 f"(tienes {self.inventory.obtener('Hielo')}).")
             return
+        # Navegar a la celda exacta de la matriz
+        wr, wc = self.world.factory_cell_world(mx, my)
         def _do():
-            # Re-verificar al llegar (otro pinguino pudo haber gastado)
+            result = self.world.place_nido(mx, my)
+            if result != "ok":
+                self.interp.log(f"No se pudo construir: {result}")
+                return
             if (self.inventory.obtener("Madera") < NIDO_COST_MADERA or
-                    self.inventory.obtener("Hielo")  < NIDO_COST_HIELO):
-                self.interp.log(
-                    "Recursos insuficientes al llegar. "
-                    "Otro pinguino pudo haberlos usado.")
+                    self.inventory.obtener("Hielo") < NIDO_COST_HIELO):
+                self.interp.log("Recursos insuficientes al llegar.")
                 return
             self.inventory.consumir("Madera", NIDO_COST_MADERA)
             self.inventory.consumir("Hielo",  NIDO_COST_HIELO)
-            # Marcar en el mundo con un tile especial
             if self.colony:
-                self.colony.build_nido(self.row, self.col)
+                self.colony.nidos += 1
             self.interp.log(
-                f"Nido construido! "
+                f"Nido construido en ({mx}, {my})! "
                 f"(-{NIDO_COST_MADERA} Madera, -{NIDO_COST_HIELO} Hielo)")
-        self._enqueue_and_wait("f_fabrica", _do)
-
+        # Encolar: ir a la celda especifica de la matriz
+        import threading
+        from config import ACTION_DELAY
+        if self._stop_event.is_set():
+            from penguin import ScriptStopped
+            raise ScriptStopped()
+        with self._action_lock:
+            start = self._queue_end_pos()
+            path  = self.world.pathfind(start[0], start[1], wr, wc)
+            done  = threading.Event()
+            self._action_queue.append({
+                "path": path, "action": _do,
+                "done": done, "dest": (wr, wc), "delay": ACTION_DELAY,
+            })
+        while not done.wait(timeout=0.05):
+            if self._stop_event.is_set():
+                from penguin import ScriptStopped
+                raise ScriptStopped()
     def cmd_crear_pinguino(self):
         def _do():
             self._wants_new = True
             self.interp.log("Nuevo pinguino cyborg creado!")
-        self._enqueue_and_wait("fabrica", _do)
+        self._enqueue_and_wait("nido", _do)
 
     # ── Render ──────────────────────────────────────
     def draw(self, surface: pygame.Surface,

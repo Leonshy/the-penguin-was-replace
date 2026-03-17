@@ -18,6 +18,7 @@ from penguin import Penguin
 from colony import Colony
 from ui.window import SimulatedPythonWindow
 from ui.terminal import ComputerTerminal
+from progress import ProgressTracker
 
 CAM_SPEED = 4   # frames entre pasos de camara
 
@@ -38,6 +39,10 @@ class Game:
         self.world     = World()
         self.colony    = Colony(self.inventory)
         self.computers = [ComputerTerminal(r, c) for r, c in COMP_POSITIONS]
+
+        # Progress tracker — conectado a la primera PC (zona pesca)
+        self.progress = ProgressTracker()
+        self.progress.terminal = self.computers[0]
 
         self.penguins:    list[Penguin]                = []
         self.active_win:  SimulatedPythonWindow | None = None
@@ -61,6 +66,7 @@ class Game:
         p = Penguin(nombre=nombre, row=row, col=col,
                     world=self.world, inventory=self.inventory,
                     colony=self.colony)
+        p.progress = self.progress   # para notificar peces pescados
         self.penguins.append(p)
         return p
 
@@ -136,6 +142,18 @@ class Game:
             self.active_win = None
 
         self.world.update(now)
+
+        # Desbloqueo de archivos segun progreso
+        inv = self.inventory
+        self.progress.check_storage(
+            inv.obtener("Pez"),
+            inv.obtener("Madera"),
+            inv.obtener("Hielo"),
+        )
+        # Detectar cuando la PC fue reparada (bash activo)
+        pc = self.computers[0]
+        if pc.estado == "bash" and "tutorial_bash.txt" not in pc._unlocked_files:
+            self.progress.on_pc_repaired()
 
         # ── Hambre ──────────────────────────────────
         victims = self.colony.update(dt_sec, now, self.penguins)

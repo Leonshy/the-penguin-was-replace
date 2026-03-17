@@ -7,7 +7,7 @@ STORAGE_MAX = 500   # capacidad maxima del almacen por recurso
 
 
 class Resource:
-    def __init__(self, nombre: str, cantidad: int = 0):
+    def __init__(self, nombre: str, cantidad: int = 200):
         self.nombre   = nombre
         self.cantidad = cantidad
 

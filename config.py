@@ -7,11 +7,11 @@
 T      = 48          # tile size
 WW     = 21          # world width  (tiles)
 WH     = 14          # world height (tiles)
-VW     = 14          # viewport cols (era 10)
-VH     = 11          # viewport rows (era 9)
+VW     = 15          # viewport cols (era 10)
+VH     = 10          # viewport rows (era 9)
 WIN_W  = VW * T      # 672 px
-HUD_H  = 88
-BAR_H  = 24
+HUD_H  = 80
+BAR_H  = 20
 WIN_H  = VH * T + HUD_H + BAR_H
 FPS    = 30
 
