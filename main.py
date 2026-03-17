@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — main.py
+#  THE PENGUIN WAS REPLACE — main.py
 #  Punto de entrada
 # ═══════════════════════════════════════════════════════
 from game import Game

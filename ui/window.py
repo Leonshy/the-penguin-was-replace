@@ -19,11 +19,11 @@ from config import (
 from ui.autocomplete import AC_DB, tokenize
 from ui.terminal import TUTORIAL_TXT
 
-_LINE_H  = 17
+_LINE_H  = 19
 _CHAR_W  = 8
 _LNPAD   = 38
 _EPAD    = 6
-_FONT_SZ = 13
+_FONT_SZ = 14
 
 
 class SimulatedPythonWindow:
@@ -36,14 +36,14 @@ class SimulatedPythonWindow:
     - Output se actualiza en vivo desde el hilo del script
     """
 
-    W            = 540
+    W            = 640
     TITLE_H      = 26
     TOOLBAR_H    = 30
-    EDITOR_LINES = 12
+    EDITOR_LINES = 14
     EDITOR_H     = EDITOR_LINES * _LINE_H + _EPAD * 2
     SEP_H        = 2
     OUT_HDR_H    = 18
-    OUT_LINES    = 6
+    OUT_LINES    = 8
     OUT_H        = OUT_LINES * _LINE_H + 8
     STATUS_H     = 18
     H = TITLE_H + TOOLBAR_H + EDITOR_H + SEP_H + OUT_HDR_H + OUT_H + STATUS_H
