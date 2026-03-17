@@ -369,7 +369,7 @@ class Penguin:
         def _do():
             self._wants_new = True
             self.interp.log("Nuevo pinguino cyborg creado!")
-        self._enqueue_and_wait("fabrica", _do)
+        self._enqueue_and_wait("nido", _do)
 
     # ── Render ──────────────────────────────────────
     def draw(self, surface: pygame.Surface,

@@ -252,7 +252,12 @@ class ComputerTerminal:
         self._history: list[str] = []
 
         # Posicion y drag
-        self.rect   = pygame.Rect(30, 50, 510, 460)
+        # Centrado en pantalla — importamos config para obtener dimensiones
+        from config import WIN_W, WIN_H
+        _tw, _th = 510, 460
+        _tx = (WIN_W - _tw) // 2
+        _ty = (WIN_H - _th) // 2
+        self.rect   = pygame.Rect(_tx, _ty, _tw, _th)
         self._drag  = False
         self._dox   = 0
         self._doy   = 0
