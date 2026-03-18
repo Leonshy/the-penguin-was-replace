@@ -305,6 +305,8 @@ class Penguin:
                 # Notificar progreso
                 if hasattr(self, "progress") and self.progress:
                     self.progress.on_fish_caught()
+                if hasattr(self, "sound") and self.sound:
+                    self.sound.play_sfx("pescar")
             else:
                 self.interp.log("Se escapo el pez... (60% de falla)")
         self._enqueue_and_wait("costa", _do)
@@ -325,6 +327,8 @@ class Penguin:
             self.personal_inv["Madera"] += 1
             n = self.personal_inv["Madera"]
             self.interp.log(f"Arbol talado! Regrowth 20s. Madera: {n}/{PERSONAL_MAX}" + (" — LLENO!" if n >= PERSONAL_MAX else ""))
+            if hasattr(self, "sound") and self.sound:
+                self.sound.play_sfx("talar")
         with self._action_lock:
             start = self._queue_end_pos()
             path  = self.world.pathfind(start[0], start[1], t[0], t[1])
@@ -344,6 +348,8 @@ class Penguin:
             self.personal_inv["Hielo"] += 1
             n = self.personal_inv["Hielo"]
             self.interp.log(f"Hielo extraido! Hielo: {n}/{PERSONAL_MAX}" + (" — LLENO!" if n >= PERSONAL_MAX else ""))
+            if hasattr(self, "sound") and self.sound:
+                self.sound.play_sfx("picar")
         self._enqueue_and_wait("mina", _do)
 
     def cmd_almacenar(self, material: str):
@@ -413,6 +419,8 @@ class Penguin:
             self.interp.log(
                 f"Nido construido en ({mx}, {my})! "
                 f"(-{NIDO_COST_MADERA} Madera, -{NIDO_COST_HIELO} Hielo)")
+            if hasattr(self, "sound") and self.sound:
+                self.sound.play_sfx("construir")
         # Encolar: ir a la celda especifica de la matriz
         import threading
         from config import ACTION_DELAY
@@ -435,6 +443,8 @@ class Penguin:
         def _do():
             self._wants_new = True
             self.interp.log("Nuevo pinguino cyborg creado!")
+            if hasattr(self, "sound") and self.sound:
+                self.sound.play_sfx("crear_pinguino")
         self._enqueue_and_wait("nido", _do)
 
     # ── Render ──────────────────────────────────────────

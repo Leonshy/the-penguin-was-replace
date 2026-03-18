@@ -23,6 +23,7 @@ from ui.intro import IntroScreen
 from ui.menu import MainMenu
 from progress import ProgressTracker
 from save import save_game, load_game, save_exists
+from sound import SoundManager
 
 CAM_SPEED   = 4
 ZOOM_LEVELS = [16, 24, 32, 48, 64, 80]   # tamaños de tile disponibles
@@ -68,6 +69,7 @@ class Game:
         self._intro = IntroScreen()
         self._menu  = MainMenu()
         self._state = "menu"   # "menu" | "intro" | "game"
+        self.sound  = SoundManager()
         self.progress.on_unlock = self._on_objective_unlocked
         self._spawn(7, 9, "Pingu-01")
         self._center_camera()
@@ -154,6 +156,7 @@ class Game:
                     world=self.world, inventory=self.inventory,
                     colony=self.colony)
         p.progress = self.progress   # para notificar peces pescados
+        p.sound    = self.sound      # para efectos de sonido
         self.penguins.append(p)
         return p
 
@@ -524,6 +527,7 @@ class Game:
         self._apply_save(data)
         self._state = "game"
         self._menu.game_active = True
+        self.sound.play_music("game")
 
     def _apply_save(self, data: dict):
         # Detener scripts actuales
@@ -605,6 +609,7 @@ class Game:
         self._quit()
 
     def _run_menu_frame(self):
+        self.sound.play_music("menu")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._quit()
@@ -614,8 +619,10 @@ class Game:
                 self._intro = IntroScreen()
                 self._state = "intro"
                 self._menu.game_active = True
+                self.sound.play_music("game")
             elif action == "continue":
                 self._state = "game"
+                self.sound.play_music("game")
             elif action == "save":
                 if self._menu.game_active:
                     self._do_save()
