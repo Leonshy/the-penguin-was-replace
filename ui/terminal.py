@@ -291,7 +291,8 @@ class ComputerTerminal:
         self.output: list[tuple[str, str]] = []  # (texto, color_key)
         self.inp     = ""
         self._history: list[str] = []
-        self._scroll  = 0   # 0 = ver el fondo, positivo = scrolleado hacia arriba
+        self._scroll    = 0     # 0 = ver el fondo, positivo = scrolleado hacia arriba
+        self.has_unread = False # True mientras haya objetivos sin leer
 
         # Posicion y drag
         # Centrado en pantalla — importamos config para obtener dimensiones
@@ -312,14 +313,48 @@ class ComputerTerminal:
         """Desbloquea un archivo y muestra su contenido automáticamente."""
         if filename not in self._unlocked_files:
             self._unlocked_files.add(filename)
+            self.has_unread = True
             if self.estado == "bash":
                 self._print("", "green")
-                self._print(f"[+] {filename}", "cyan")
+                self._print(f"[+] Nuevo archivo desbloqueado: {filename}", "orange")
                 self._print("─" * 48, "gray")
                 content = FILE_CONTENTS.get(filename, [])
                 for line in content:
                     self._print(line, "green")
                 self._print("", "green")
+
+    def on_open(self):
+        """Llamar cuando el jugador abre la terminal."""
+        if self.has_unread and self.estado == "bash":
+            self._print("", "green")
+            self._print("╔══════════════════════════════════════╗", "cyan")
+            self._print("║  ! TENES NUEVOS OBJETIVOS ARRIBA  !  ║", "cyan")
+            self._print("║     Scrollea hacia arriba para verlos ║", "gray")
+            self._print("╚══════════════════════════════════════╝", "cyan")
+            self._print("", "green")
+        self.has_unread = False
+
+    def draw_world_indicator(self, surface, cam_col, cam_row,
+                              font, tile_size, vw, vh, hud_h):
+        """Dibuja un '!' parpadeante sobre el tile de la PC en el mundo."""
+        if not self.has_unread:
+            return
+        vc = self.col - cam_col
+        vr = self.row - cam_row
+        if not (0 <= vc < vw and 0 <= vr < vh):
+            return
+        if (pygame.time.get_ticks() // 350) % 2 == 0:
+            cx  = vc * tile_size + tile_size // 2
+            cy  = vr * tile_size + hud_h
+            bw, bh = 18, 18
+            bx  = cx - bw // 2
+            by  = cy - bh - 2
+            pygame.draw.rect(surface, (200, 100, 0),
+                             (bx, by, bw, bh), border_radius=4)
+            pygame.draw.rect(surface, (255, 200, 0),
+                             (bx, by, bw, bh), 1, border_radius=4)
+            s = font.render("!", True, (255, 255, 255))
+            surface.blit(s, s.get_rect(center=(cx, by + bh // 2)))
 
     def _list_files(self, path: str | None = None) -> list[str]:
         """Lista los archivos del directorio actual."""
@@ -562,11 +597,12 @@ class ComputerTerminal:
 
         # Output con scroll
         COLOR_MAP = {
-            "green": CUI_GREEN,
-            "cyan":  CUI_CYAN,
-            "white": (210, 215, 235),
-            "gray":  (110, 115, 140),
-            "red":   (220, 80, 80),
+            "green":  CUI_GREEN,
+            "cyan":   CUI_CYAN,
+            "white":  (210, 215, 235),
+            "gray":   (110, 115, 140),
+            "red":    (220, 80, 80),
+            "orange": (255, 160, 0),
         }
         SB_W        = 8               # ancho de la scrollbar
         content_y   = rect.y + 24
