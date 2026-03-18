@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — colony.py
+#  THE PENGUIN WAS REPLACE — colony.py
 #
 #  La colonia consume automaticamente 1 pez del almacen
 #  cada FISH_CONSUME_SEC segundos.

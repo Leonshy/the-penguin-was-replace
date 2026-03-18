@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — ui/autocomplete.py
+#  THE PENGUIN WAS REPLACE — ui/autocomplete.py
 # ═══════════════════════════════════════════════════════
 
 AC_DB = [
@@ -35,9 +35,9 @@ AC_DB = [
     {
         "label":  "construir_nido",
         "kind":   "fn",
-        "insert": "construir_nido()",
-        "detail": "construir_nido() -> None",
-        "doc":    "Construye un nido cyborg en la fabrica.\nCosto: 50 Madera + 100 Hielo\ndel almacen global.",
+        "insert": "construir_nido(0, 0)",
+        "detail": "construir_nido(col: int, fila: int) -> None",
+        "doc":    "Construye un nido en la MATRIZ de la fabrica.\ncol: 0-4  fila: 0-3\nCosto: 50 Madera + 100 Hielo\nEj: construir_nido(2, 1)",
     },
     {
         "label":  "crear_pinguino",
