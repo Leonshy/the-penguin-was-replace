@@ -309,12 +309,17 @@ class ComputerTerminal:
 
     # ── Sistema de archivos ──────────────────────────
     def unlock_file(self, filename: str):
-        """Desbloquea un archivo en el directorio home."""
+        """Desbloquea un archivo y muestra su contenido automáticamente."""
         if filename not in self._unlocked_files:
             self._unlocked_files.add(filename)
             if self.estado == "bash":
-                self._print(f"[+] Nuevo archivo desbloqueado: {filename}", "cyan")
-                self._print(f"    Usa: cat {filename}", "gray")
+                self._print("", "green")
+                self._print(f"[+] {filename}", "cyan")
+                self._print("─" * 48, "gray")
+                content = FILE_CONTENTS.get(filename, [])
+                for line in content:
+                    self._print(line, "green")
+                self._print("", "green")
 
     def _list_files(self, path: str | None = None) -> list[str]:
         """Lista los archivos del directorio actual."""
