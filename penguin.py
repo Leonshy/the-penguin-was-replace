@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — penguin.py  (sprites GBA mejorados)
+#  THE PENGUIN WAS REPLACE — penguin.py  (sprites GBA mejorados)
 # ═══════════════════════════════════════════════════════
 from __future__ import annotations
 import threading
@@ -178,6 +178,7 @@ class Penguin:
         self.win       = None
         self.selected  = False
         self._wants_new = False
+        self.progress = None   # set by Game._spawn
         self.alive     = True
         self.color     = PENGUIN_COLORS[(idx - 1) % len(PENGUIN_COLORS)]
 
@@ -189,17 +190,28 @@ class Penguin:
         self._move_timer    = 0
         self._action_lock   = threading.Lock()
 
-        # Sprites pre-generados
-        sprite_size = max(T - 4, 24)
-        self._sprite       = _make_penguin_surface(self.color, sprite_size)
-        self._sprite_flip  = pygame.transform.flip(self._sprite, True, False)
-        self._sel_ring     = _make_selection_ring(self.color, T)
+        # Caché de sprites por tile_size — se genera bajo demanda
+        self._sprite_cache:      dict[int, pygame.Surface] = {}
+        self._sprite_walk_cache: dict[int, pygame.Surface] = {}
+        self._sel_ring_cache:    dict[int, pygame.Surface] = {}
 
         # Animación (frame alterno al caminar)
         self._anim_frame  = 0
         self._anim_timer  = 0
-        self._sprite_walk = _make_penguin_surface(
-            tuple(min(255, c+20) for c in self.color), sprite_size)
+
+    # ── Sprites por tamaño ──────────────────────────────
+    def _get_sprites(self, tile_size: int):
+        """Devuelve (sprite, sprite_walk, sel_ring) para el tile_size dado.
+        Genera y cachea la primera vez que se pide ese tamaño."""
+        if tile_size not in self._sprite_cache:
+            sz = max(tile_size - 4, 12)
+            self._sprite_cache[tile_size]      = _make_penguin_surface(self.color, sz)
+            self._sprite_walk_cache[tile_size] = _make_penguin_surface(
+                tuple(min(255, c + 20) for c in self.color), sz)
+            self._sel_ring_cache[tile_size]    = _make_selection_ring(self.color, tile_size)
+        return (self._sprite_cache[tile_size],
+                self._sprite_walk_cache[tile_size],
+                self._sel_ring_cache[tile_size])
 
     # ── Helpers ─────────────────────────────────────────
     def inventario_lleno(self, material: str) -> bool:
@@ -278,26 +290,35 @@ class Penguin:
 
     # ── Comandos ────────────────────────────────────────
     def cmd_pescar(self):
-        if self.personal_inv["Pez"] >= PERSONAL_MAX:
-            self.interp.log(f"Mochila de Pez llena ({PERSONAL_MAX}/{PERSONAL_MAX})! Almacenalo primero.")
-            return
         def _do():
+            if self.personal_inv["Pez"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Pez') primero.")
+                return
             if random.random() < FISH_PROBABILITY:
                 self.personal_inv["Pez"] += 1
                 n = self.personal_inv["Pez"]
-                self.interp.log(f"Pescado! Pez: {n}/{PERSONAL_MAX}" + (" — LLENO!" if n >= PERSONAL_MAX else ""))
+                self.interp.log(
+                    f"Pescado! Pez: {n}/{PERSONAL_MAX}"
+                    + (" — LLENO!" if n >= PERSONAL_MAX else ""))
+                # Notificar progreso
+                if hasattr(self, "progress") and self.progress:
+                    self.progress.on_fish_caught()
             else:
                 self.interp.log("Se escapo el pez... (60% de falla)")
         self._enqueue_and_wait("costa", _do)
 
     def cmd_talar(self):
-        if self.personal_inv["Madera"] >= PERSONAL_MAX:
-            self.interp.log(f"Mochila de Madera llena ({PERSONAL_MAX}/{PERSONAL_MAX})! Almacenalo primero.")
-            return
         t = self.world.find_nearest(*self._queue_end_pos(), "arbol")
         if t is None:
             self.interp.log("No hay arboles disponibles."); return
         def _do():
+            if self.personal_inv["Madera"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Madera') primero.")
+                return
             pos = (self.row, self.col)
             if self.world.get_tile(*pos).tipo == "arbol":
                 self.world.cut_tree(pos[0], pos[1], pygame.time.get_ticks())
@@ -314,10 +335,12 @@ class Penguin:
                 raise ScriptStopped()
 
     def cmd_picar_hielo(self):
-        if self.personal_inv["Hielo"] >= PERSONAL_MAX:
-            self.interp.log(f"Mochila de Hielo llena ({PERSONAL_MAX}/{PERSONAL_MAX})! Almacenalo primero.")
-            return
         def _do():
+            if self.personal_inv["Hielo"] >= PERSONAL_MAX:
+                self.interp.log(
+                    f"Mochila llena ({PERSONAL_MAX}/{PERSONAL_MAX})! "
+                    "Usá almacenar('Hielo') primero.")
+                return
             self.personal_inv["Hielo"] += 1
             n = self.personal_inv["Hielo"]
             self.interp.log(f"Hielo extraido! Hielo: {n}/{PERSONAL_MAX}" + (" — LLENO!" if n >= PERSONAL_MAX else ""))
@@ -338,14 +361,47 @@ class Penguin:
             self.interp.log(f"Almacenado {stored} {material}. Almacen: {total}/500")
         self._enqueue_and_wait("almacen", _do)
 
-    def cmd_construir_nido(self):
+    def cmd_construir_nido(self, mx: int = 0, my: int = 0):
+        """
+        Construye un nido en la MATRIZ de la fabrica.
+        Parametros:
+          mx = columna (0-4)
+          my = fila    (0-3)
+        Costo: 50 Madera + 100 Hielo del almacen global.
+
+        Ejemplo: construir_nido(0, 0)  -> celda (col=0, fila=0)
+                 construir_nido(2, 1)  -> celda (col=2, fila=1)
+        """
+        # Validar rango antes de moverse
+        from world import FACTORY_COLS, FACTORY_ROWS
+        if not (0 <= mx < FACTORY_COLS):
+            self.interp.log(
+                f"ERROR: columna {mx} fuera de rango. "
+                f"Usa 0 a {FACTORY_COLS - 1}.")
+            return
+        if not (0 <= my < FACTORY_ROWS):
+            self.interp.log(
+                f"ERROR: fila {my} fuera de rango. "
+                f"Usa 0 a {FACTORY_ROWS - 1}.")
+            return
+        # Verificar recursos
         if self.inventory.obtener("Madera") < NIDO_COST_MADERA:
-            self.interp.log(f"Necesitas {NIDO_COST_MADERA} Madera en el almacen (tienes {self.inventory.obtener('Madera')}).")
+            self.interp.log(
+                f"Necesitas {NIDO_COST_MADERA} Madera "
+                f"(tienes {self.inventory.obtener('Madera')}).")
             return
         if self.inventory.obtener("Hielo") < NIDO_COST_HIELO:
-            self.interp.log(f"Necesitas {NIDO_COST_HIELO} Hielo en el almacen (tienes {self.inventory.obtener('Hielo')}).")
+            self.interp.log(
+                f"Necesitas {NIDO_COST_HIELO} Hielo "
+                f"(tienes {self.inventory.obtener('Hielo')}).")
             return
+        # Navegar a la celda exacta de la matriz
+        wr, wc = self.world.factory_cell_world(mx, my)
         def _do():
+            result = self.world.place_nido(mx, my)
+            if result != "ok":
+                self.interp.log(f"No se pudo construir: {result}")
+                return
             if (self.inventory.obtener("Madera") < NIDO_COST_MADERA or
                     self.inventory.obtener("Hielo") < NIDO_COST_HIELO):
                 self.interp.log("Recursos insuficientes al llegar.")
@@ -353,25 +409,50 @@ class Penguin:
             self.inventory.consumir("Madera", NIDO_COST_MADERA)
             self.inventory.consumir("Hielo",  NIDO_COST_HIELO)
             if self.colony:
-                self.colony.build_nido(self.row, self.col)
-            self.interp.log(f"Nido construido! (-{NIDO_COST_MADERA} Madera, -{NIDO_COST_HIELO} Hielo)")
-        self._enqueue_and_wait("f_fabrica", _do)
-
+                self.colony.nidos += 1
+            self.interp.log(
+                f"Nido construido en ({mx}, {my})! "
+                f"(-{NIDO_COST_MADERA} Madera, -{NIDO_COST_HIELO} Hielo)")
+        # Encolar: ir a la celda especifica de la matriz
+        import threading
+        from config import ACTION_DELAY
+        if self._stop_event.is_set():
+            from penguin import ScriptStopped
+            raise ScriptStopped()
+        with self._action_lock:
+            start = self._queue_end_pos()
+            path  = self.world.pathfind(start[0], start[1], wr, wc)
+            done  = threading.Event()
+            self._action_queue.append({
+                "path": path, "action": _do,
+                "done": done, "dest": (wr, wc), "delay": ACTION_DELAY,
+            })
+        while not done.wait(timeout=0.05):
+            if self._stop_event.is_set():
+                from penguin import ScriptStopped
+                raise ScriptStopped()
     def cmd_crear_pinguino(self):
         def _do():
             self._wants_new = True
             self.interp.log("Nuevo pinguino cyborg creado!")
-        self._enqueue_and_wait("fabrica", _do)
+        self._enqueue_and_wait("nido", _do)
 
     # ── Render ──────────────────────────────────────────
-    def draw(self, surface, cam_col, cam_row, font):
+    def draw(self, surface, cam_col, cam_row, font,
+             tile_size=None, vw=None, vh=None):
+        ts  = tile_size or T
+        _vw = vw or VW
+        _vh = vh or VH
+
         vc = self.col - cam_col
         vr = self.row - cam_row
-        if not (0 <= vc < VW and 0 <= vr < VH):
+        if not (0 <= vc < _vw and 0 <= vr < _vh):
             return
 
-        cx = vc * T + T // 2
-        cy = vr * T + HUD_H + T // 2
+        cx = vc * ts + ts // 2
+        cy = vr * ts + HUD_H + ts // 2
+
+        sprite, sprite_walk, sel_ring = self._get_sprites(ts)
 
         # Path de movimiento (puntos)
         with self._action_lock:
@@ -379,19 +460,19 @@ class Penguin:
         if qs:
             pts = [(self.col, self.row)] + [(c, r) for r, c in qs[0]["path"][:6]]
             for i in range(len(pts) - 1):
-                ax = (pts[i][0]   - cam_col) * T + T // 2
-                ay = (pts[i][1]   - cam_row) * T + HUD_H + T // 2
-                bx = (pts[i+1][0] - cam_col) * T + T // 2
-                by = (pts[i+1][1] - cam_row) * T + HUD_H + T // 2
+                ax = (pts[i][0]   - cam_col) * ts + ts // 2
+                ay = (pts[i][1]   - cam_row) * ts + HUD_H + ts // 2
+                bx = (pts[i+1][0] - cam_col) * ts + ts // 2
+                by = (pts[i+1][1] - cam_row) * ts + HUD_H + ts // 2
                 dim = tuple(max(0, c - 100) for c in self.color)
                 pygame.draw.line(surface, dim, (ax, ay), (bx, by), 2)
 
         # Anillo de selección
         if self.selected:
-            surface.blit(self._sel_ring, (vc * T, vr * T + HUD_H))
+            surface.blit(sel_ring, (vc * ts, vr * ts + HUD_H))
 
         # Sprite del pingüino centrado en el tile
-        sp = self._sprite_walk if (self._anim_frame == 1 and qs) else self._sprite
+        sp = sprite_walk if (self._anim_frame == 1 and qs) else sprite
         sw, sh = sp.get_size()
         sx = cx - sw // 2
         sy = cy - sh // 2 - 2
@@ -404,29 +485,32 @@ class Penguin:
 
         # Indicador "ocupado" (punto naranja)
         if qs:
-            pygame.draw.circle(surface, CUI_ORANGE, (cx + T//2 - 6, cy - T//2 + 4), 4)
-            pygame.draw.circle(surface, (255, 220, 0), (cx + T//2 - 6, cy - T//2 + 4), 2)
+            pygame.draw.circle(surface, CUI_ORANGE, (cx + ts//2 - 6, cy - ts//2 + 4), 4)
+            pygame.draw.circle(surface, (255, 220, 0), (cx + ts//2 - 6, cy - ts//2 + 4), 2)
 
-        # Mini-barras de inventario personal
-        colors_map = [
-            ("Pez",    (80, 160, 255)),
-            ("Madera", (160, 100, 40)),
-            ("Hielo",  (180, 230, 255)),
-        ]
-        bar_total_w = T - 4
-        slot_w = bar_total_w // 3
-        bar_y  = vr * T + HUD_H + T - 8
-        bar_x0 = vc * T + 2
-        for i, (res, col_c) in enumerate(colors_map):
-            qty = self.personal_inv[res]
-            bx0 = bar_x0 + i * slot_w
-            pygame.draw.rect(surface, (20, 20, 32), (bx0, bar_y, slot_w - 1, 5))
-            fw = int((qty / PERSONAL_MAX) * (slot_w - 1))
-            if fw > 0:
-                pygame.draw.rect(surface, col_c, (bx0, bar_y, fw, 5))
-                bright = tuple(min(255, c+60) for c in col_c)
-                pygame.draw.rect(surface, bright, (bx0, bar_y, fw, 1))
+        # Mini-barras de inventario personal (solo si el tile es suficientemente grande)
+        if ts >= 48:
+            colors_map = [
+                ("Pez",    (80, 160, 255)),
+                ("Madera", (160, 100, 40)),
+                ("Hielo",  (180, 230, 255)),
+            ]
+            bar_total_w = ts - 4
+            slot_w = bar_total_w // 3
+            bar_y  = vr * ts + HUD_H + ts - 8
+            bar_x0 = vc * ts + 2
+            for i, (res, col_c) in enumerate(colors_map):
+                qty = self.personal_inv[res]
+                bx0 = bar_x0 + i * slot_w
+                pygame.draw.rect(surface, (20, 20, 32), (bx0, bar_y, slot_w - 1, 5))
+                fw = int((qty / PERSONAL_MAX) * (slot_w - 1))
+                if fw > 0:
+                    pygame.draw.rect(surface, col_c, (bx0, bar_y, fw, 5))
+                    bright = tuple(min(255, c+60) for c in col_c)
+                    pygame.draw.rect(surface, bright, (bx0, bar_y, fw, 1))
 
-        # Nombre
-        lbl = font.render(self.nombre, True, CUI_WHITE)
-        surface.blit(lbl, lbl.get_rect(centerx=cx, top=bar_y + 7))
+        # Nombre (solo si hay espacio)
+        if ts >= 48:
+            bar_y = vr * ts + HUD_H + ts - 8
+            lbl = font.render(self.nombre, True, CUI_WHITE)
+            surface.blit(lbl, lbl.get_rect(centerx=cx, top=bar_y + 7))

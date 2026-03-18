@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — ui/window.py
+#  THE PENGUIN WAS REPLACE — ui/window.py
 #  Ventana Python simulada (editor + output + autocomplete)
 # ═══════════════════════════════════════════════════════
 from __future__ import annotations
@@ -17,7 +17,6 @@ from config import (
     AC_KIND_STYLE,
 )
 from ui.autocomplete import AC_DB, tokenize
-from ui.terminal import TUTORIAL_TXT
 
 _LINE_H  = 19
 _CHAR_W  = 8

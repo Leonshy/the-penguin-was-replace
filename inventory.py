@@ -1,9 +1,9 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — inventory.py
+#  THE PENGUIN WAS REPLACE — inventory.py
 #  Almacen global con capacidad maxima de 500 por recurso
 # ═══════════════════════════════════════════════════════
 
-STORAGE_MAX = 500   # capacidad maxima del almacen por recurso
+STORAGE_MAX = 1000   # capacidad maxima del almacen por recurso
 
 
 class Resource:

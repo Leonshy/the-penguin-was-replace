@@ -13,21 +13,25 @@ from config import (
     COMP_POSITIONS,
     HUNGER_MAX,
 )
-from world import World
+from world import World, clear_tile_cache
 from inventory import Inventory
 from penguin import Penguin
 from colony import Colony
 from ui.window import SimulatedPythonWindow
 from ui.terminal import ComputerTerminal
+from progress import ProgressTracker
 
-CAM_SPEED = 4
+CAM_SPEED   = 4
+ZOOM_LEVELS = [16, 24, 32, 48, 64, 80]   # tamaños de tile disponibles
+MAP_PADDING = 10                  # tiles oscuros navegables fuera del mapa
 
 
 class Game:
     def __init__(self):
         pygame.init()
+        self._fullscreen = False
         self.screen = pygame.display.set_mode((WIN_W, WIN_H))
-        pygame.display.set_caption("🐧 Cyborg Penguins")
+        pygame.display.set_caption("🐧 The Penguin Was Replace")
         self.clock   = pygame.time.Clock()
         self.running = True
 
@@ -42,6 +46,10 @@ class Game:
         self.colony    = Colony(self.inventory)
         self.computers = [ComputerTerminal(r, c) for r, c in COMP_POSITIONS]
 
+        # Progress tracker — conectado a la primera PC (zona pesca)
+        self.progress = ProgressTracker()
+        self.progress.terminal = self.computers[0]
+
         self.penguins:    list[Penguin]                = []
         self.active_win:  SimulatedPythonWindow | None = None
         self.active_comp: ComputerTerminal | None      = None
@@ -49,17 +57,66 @@ class Game:
         self.cam_col    = 0
         self.cam_row    = 0
         self._cam_timer = 0
+        self._zoom_idx  = 4           # índice en ZOOM_LEVELS → empieza en T=64
 
         self._event_msgs: list[tuple[str, float, tuple]] = []
         self._last_ms = pygame.time.get_ticks()
         self._spawn(7, 9, "Pingu-01")
         self._center_camera()
 
+    # ── Zoom ─────────────────────────────────────────────
+    @property
+    def T(self) -> int:
+        return ZOOM_LEVELS[self._zoom_idx]
+
+    @property
+    def VW(self) -> int:
+        return WIN_W // self.T
+
+    @property
+    def VH(self) -> int:
+        return (WIN_H - HUD_H - BAR_H) // self.T
+
+    def _toggle_fullscreen(self):
+        self._fullscreen = not self._fullscreen
+        if self._fullscreen:
+            self.screen = pygame.display.set_mode(
+                (WIN_W, WIN_H), pygame.SCALED | pygame.FULLSCREEN)
+        else:
+            self.screen = pygame.display.set_mode((WIN_W, WIN_H))
+
+    def _zoom_in(self):
+        if self._zoom_idx < len(ZOOM_LEVELS) - 1:
+            self._zoom_idx += 1
+            clear_tile_cache()
+            self._clamp_camera()
+
+    def _zoom_out(self):
+        if self._zoom_idx > 0:
+            self._zoom_idx -= 1
+            clear_tile_cache()
+            self._clamp_camera()
+
+    def _clamp_camera(self):
+        # Si el mapa entra entero en la pantalla → centrarlo
+        # Si no → scroll libre con MAP_PADDING tiles oscuros de margen
+        if self.VW >= WW:
+            self.cam_col = -((self.VW - WW) // 2)
+        else:
+            self.cam_col = max(-MAP_PADDING,
+                               min(self.cam_col, WW - self.VW + MAP_PADDING))
+        if self.VH >= WH:
+            self.cam_row = -((self.VH - WH) // 2)
+        else:
+            self.cam_row = max(-MAP_PADDING,
+                               min(self.cam_row, WH - self.VH + MAP_PADDING))
+
     # ── Helpers ─────────────────────────────────────────
     def _spawn(self, row, col, nombre=None) -> Penguin:
         p = Penguin(nombre=nombre, row=row, col=col,
                     world=self.world, inventory=self.inventory,
                     colony=self.colony)
+        p.progress = self.progress   # para notificar peces pescados
         self.penguins.append(p)
         return p
 
@@ -67,8 +124,9 @@ class Game:
         target = next((p for p in self.penguins if p.selected and p.alive),
                       next((p for p in self.penguins if p.alive), None))
         if target:
-            self.cam_col = max(0, min(target.col - VW // 2, WW - VW))
-            self.cam_row = max(0, min(target.row - VH // 2, WH - VH))
+            self.cam_col = target.col - self.VW // 2
+            self.cam_row = target.row - self.VH // 2
+            self._clamp_camera()
 
     def _push_msg(self, text, color=(255, 80, 80), duration_ms=3000):
         expire = pygame.time.get_ticks() + duration_ms
@@ -93,15 +151,23 @@ class Game:
                 self.active_comp.handle_event(event)
                 continue
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_f:
+                    self._toggle_fullscreen()
+                elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
+                    self._zoom_in()
+                elif event.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
+                    self._zoom_out()
+
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 self._on_click(event.pos)
 
     def _on_click(self, pos):
         mx, my = pos
-        if my < HUD_H or my >= HUD_H + VH * T:
+        if my < HUD_H or my >= HUD_H + self.VH * self.T:
             return
-        wc = self.cam_col + mx // T
-        wr = self.cam_row + (my - HUD_H) // T
+        wc = self.cam_col + mx // self.T
+        wr = self.cam_row + (my - HUD_H) // self.T
         if not (0 <= wr < WH and 0 <= wc < WW):
             return
         for p in self.penguins:
@@ -133,6 +199,19 @@ class Game:
 
         self.world.update(now)
 
+        # Desbloqueo de archivos segun progreso
+        inv = self.inventory
+        self.progress.check_storage(
+            inv.obtener("Pez"),
+            inv.obtener("Madera"),
+            inv.obtener("Hielo"),
+        )
+        # Detectar cuando la PC fue reparada (bash activo)
+        pc = self.computers[0]
+        if pc.estado == "bash" and "tutorial_bash.txt" not in pc._unlocked_files:
+            self.progress.on_pc_repaired()
+
+        # ── Hambre ──────────────────────────────────
         victims = self.colony.update(dt_sec, now, self.penguins)
         for p in victims:
             p.alive = False
@@ -159,17 +238,22 @@ class Game:
             if self._cam_timer >= CAM_SPEED:
                 self._cam_timer = 0
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_LEFT]:  self.cam_col = max(0, self.cam_col - 1)
-                if keys[pygame.K_RIGHT]: self.cam_col = min(WW - VW, self.cam_col + 1)
-                if keys[pygame.K_UP]:    self.cam_row = max(0, self.cam_row - 1)
-                if keys[pygame.K_DOWN]:  self.cam_row = min(WH - VH, self.cam_row + 1)
+                moved = False
+                if keys[pygame.K_LEFT]:  self.cam_col -= 1; moved = True
+                if keys[pygame.K_RIGHT]: self.cam_col += 1; moved = True
+                if keys[pygame.K_UP]:    self.cam_row -= 1; moved = True
+                if keys[pygame.K_DOWN]:  self.cam_row += 1; moved = True
+                if moved:
+                    self._clamp_camera()
 
     # ── Draw ─────────────────────────────────────────────
     def draw(self):
         self.screen.fill(CUI_BG)
-        self.world.draw(self.screen, self.cam_col, self.cam_row, self.font_sm)
+        self.world.draw(self.screen, self.cam_col, self.cam_row, self.font_sm,
+                        tile_size=self.T, vw=self.VW, vh=self.VH)
         for p in self.penguins:
-            p.draw(self.screen, self.cam_col, self.cam_row, self.font_sm)
+            p.draw(self.screen, self.cam_col, self.cam_row, self.font_sm,
+                   tile_size=self.T, vw=self.VW, vh=self.VH)
         for comp in self.computers:
             comp.draw(self.screen, self.font_sm)
         self._draw_hud()
@@ -188,14 +272,14 @@ class Game:
         pygame.draw.line(self.screen, (0, 80, 80), (0, HUD_H-2), (WIN_W, HUD_H-2))
 
         # ── Título con efecto ────────────────────────────
-        title = self.font_big.render("CYBORG PENGUINS", True, CUI_CYAN)
+        title = self.font_big.render("THE PENGUIN WAS REPLACE", True, CUI_CYAN)
         # Sombra
-        shadow = self.font_big.render("CYBORG PENGUINS", True, (0, 60, 60))
+        shadow = self.font_big.render("THE PENGUIN WAS REPLACE", True, (0, 60, 60))
         self.screen.blit(shadow, (12, 6))
         self.screen.blit(title, (10, 4))
 
         # Subtítulo
-        sub = self.font_sm.render("v2.0  |  polar colony sim", True, (60, 120, 120))
+        sub = self.font_sm.render("hackathon edition", True, (60, 120, 120))
         self.screen.blit(sub, (12, 28))
 
         # ── Barra de HAMBRE ──────────────────────────────
@@ -298,7 +382,7 @@ class Game:
             self.screen.blit(cnt_s, (panel_x, 38))
 
         # ── Barra inferior ───────────────────────────────
-        bar_y = HUD_H + VH * T
+        bar_y = WIN_H - BAR_H
         pygame.draw.rect(self.screen, (6, 8, 18), (0, bar_y, WIN_W, BAR_H))
         pygame.draw.line(self.screen, (40, 44, 80), (0, bar_y), (WIN_W, bar_y))
         help_txt = (

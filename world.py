@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — world.py
+#  THE PENGUIN WAS REPLACE — world.py
 #  Tiles GBA pixel art generados en runtime
 # ═══════════════════════════════════════════════════════
 from __future__ import annotations
@@ -308,6 +308,29 @@ class Tile:
 # ═══════════════════════════════════════════════════════
 #  WORLD
 # ═══════════════════════════════════════════════════════
+ZONE_NAMES = {
+    "f_pesca":   "Costa de Pesca",
+    "f_bosque":  "Bosque Glacial",
+    "f_mina":    "Mina de Hielo",
+    "f_almacen": "Almacen Central",
+    "f_fabrica": "Iglu Cyborg",
+    "f_yermo":   "Yermo",
+    "agua":      "Mar",
+    "costa":     "Costa",
+}
+
+
+# ── Matriz de la fabrica ────────────────────────────────
+# La zona fabrica ocupa r0-5, c14-20 en el mundo.
+# La cuadricula construible es 5 columnas x 4 filas:
+#   col de juego 0-4  → world_col = 15 + col_juego
+#   fila de juego 0-3 → world_row =  1 + fila_juego
+FACTORY_COLS  = 5   # columnas de la matriz (0..4)
+FACTORY_ROWS  = 4   # filas de la matriz (0..3)
+FACTORY_WC0   = 15  # primera columna world de la cuadricula
+FACTORY_WR0   = 1   # primera fila world de la cuadricula
+
+
 class World:
     def __init__(self):
         self.grid: list[list[Tile]] = [
@@ -322,9 +345,12 @@ class World:
         for r in range(1, 5):
             for c in range(8, 13):
                 g[r][c] = Tile("almacen")
-        for r in range(1, 5):
-            for c in range(15, 20):
-                g[r][c] = Tile("fabrica")
+
+        # FABRICA: zona vacia — el jugador construye nidos con construir_nido(x, y)
+        # Matriz 5x4: columnas 0-4 → world c15-19, filas 0-3 → world r1-4
+        # (no se colocan tiles fabrica aqui, el suelo es f_fabrica)
+
+        # MINA (r7-10, c1-5)
         for r in range(7, 11):
             for c in range(1, 6):
                 g[r][c] = Tile("mina")
@@ -397,26 +423,56 @@ class World:
                         q.append((nr,nc))
         return []
 
-    def build_nido(self, row, col):
+    def build_nido(self, row: int, col: int):
+        """Coloca un tile de nido en coordenadas world (uso interno)."""
         if 0 <= row < WH and 0 <= col < WW:
             self.grid[row][col] = Tile("nido")
 
-    def zone_name(self, row, col) -> str:
+    def place_nido(self, mx: int, my: int) -> str:
+        """
+        Coloca un nido en la posicion de la MATRIZ de la fabrica.
+        mx = columna de la matriz (0 .. FACTORY_COLS-1)
+        my = fila    de la matriz (0 .. FACTORY_ROWS-1)
+        Devuelve "ok" o un mensaje de error.
+        """
+        if not (0 <= mx < FACTORY_COLS):
+            return (f"Columna {mx} fuera de rango. "
+                    f"Usa 0 a {FACTORY_COLS-1}.")
+        if not (0 <= my < FACTORY_ROWS):
+            return (f"Fila {my} fuera de rango. "
+                    f"Usa 0 a {FACTORY_ROWS-1}.")
+        wr = FACTORY_WR0 + my
+        wc = FACTORY_WC0 + mx
+        tile = self.grid[wr][wc]
+        if tile.tipo == "nido":
+            return f"La celda ({mx}, {my}) ya tiene un nido."
+        self.grid[wr][wc] = Tile("nido")
+        return "ok"
+
+    def factory_cell_world(self, mx: int, my: int) -> tuple[int, int]:
+        """Convierte coordenadas de matriz a coordenadas world."""
+        return (FACTORY_WR0 + my, FACTORY_WC0 + mx)
+
+    def zone_name(self, row: int, col: int) -> str:
         if 0 <= row < WH and 0 <= col < WW:
             t = self.grid[row][col].tipo
             if t in ZONE_NAMES:
                 return ZONE_NAMES[t]
         return ZONE_NAMES.get(get_zone(row, col), "?")
 
-    def draw(self, surface, cam_col, cam_row, font):
-        for vr in range(VH):
-            for vc in range(VW):
+    def draw(self, surface, cam_col, cam_row, font,
+             tile_size=None, vw=None, vh=None):
+        ts  = tile_size or T
+        _vw = vw or VW
+        _vh = vh or VH
+        for vr in range(_vh):
+            for vc in range(_vw):
                 wr, wc = cam_row + vr, cam_col + vc
                 if 0 <= wr < WH and 0 <= wc < WW:
                     self.grid[wr][wc].draw(
                         surface,
-                        vc * T,
-                        vr * T + HUD_H,
+                        vc * ts,
+                        vr * ts + HUD_H,
                         font,
-                        T,
+                        ts,
                     )

@@ -1,17 +1,17 @@
 # ═══════════════════════════════════════════════════════
-#  CYBORG PENGUINS — config.py
+#  THE PENGUIN WAS REPLACE — config.py
 #  Resolución grande + paleta GBA mejorada
 # ═══════════════════════════════════════════════════════
 
 # ── Mundo ───────────────────────────────────────────────
-T      = 48          # tile size
+T      = 64          # tile size
 WW     = 21          # world width  (tiles)
 WH     = 14          # world height (tiles)
-VW     = 14          # viewport cols (era 10)
-VH     = 11          # viewport rows (era 9)
+VW     = 15          # viewport cols (era 10)
+VH     = 10          # viewport rows (era 9)
 WIN_W  = VW * T      # 672 px
-HUD_H  = 88
-BAR_H  = 24
+HUD_H  = 80
+BAR_H  = 20
 WIN_H  = VH * T + HUD_H + BAR_H
 FPS    = 30
 
@@ -109,6 +109,6 @@ HUNGER_DRAIN_SEC  = 3.0
 FISH_CONSUME_SEC  = 10.0
 HUNGER_DEATH_MS   = 10_000
 
-NIDO_COST_MADERA = 50
-NIDO_COST_HIELO  = 100
+NIDO_COST_MADERA = 20
+NIDO_COST_HIELO  = 50
 FISH_PROBABILITY = 0.40
