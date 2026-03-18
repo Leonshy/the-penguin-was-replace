@@ -210,6 +210,7 @@ class Game:
                 self.active_comp = comp
                 comp.show = True
                 comp.on_open()
+                self._obj_notif = None
                 return
 
     # ── Update ──────────────────────────────────────────
@@ -281,10 +282,12 @@ class Game:
                    tile_size=self.T, vw=self.VW, vh=self.VH)
         for comp in self.computers:
             comp.draw(self.screen, self.font_sm)
-            comp.draw_world_indicator(self.screen, self.cam_col, self.cam_row,
-                                      self.font_sm, self.T, self.VW, self.VH, HUD_H)
+            if not comp.show:
+                comp.draw_world_indicator(self.screen, self.cam_col, self.cam_row,
+                                          self.font_sm, self.T, self.VW, self.VH, HUD_H)
         self._draw_hud()
-        self._draw_obj_notif()
+        if not (self.active_comp and self.active_comp.show):
+            self._draw_obj_notif()
         self._draw_event_msgs()
         if self.active_win and self.active_win.active:
             self.active_win.draw(self.screen)

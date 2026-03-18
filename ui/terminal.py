@@ -315,7 +315,7 @@ class ComputerTerminal:
             self._unlocked_files.add(filename)
             self.has_unread = True
             if self.estado == "bash":
-                self._print(f"[+] Nuevo archivo desbloqueado: {filename}", "cyan")
+                self._print(f"[+] Nuevo archivo desbloqueado: {filename}", "orange")
                 self._print(f"    Usa: cat {filename}", "gray")
 
     def on_open(self):
@@ -592,11 +592,12 @@ class ComputerTerminal:
 
         # Output con scroll
         COLOR_MAP = {
-            "green": CUI_GREEN,
-            "cyan":  CUI_CYAN,
-            "white": (210, 215, 235),
-            "gray":  (110, 115, 140),
-            "red":   (220, 80, 80),
+            "green":  CUI_GREEN,
+            "cyan":   CUI_CYAN,
+            "white":  (210, 215, 235),
+            "gray":   (110, 115, 140),
+            "red":    (220, 80, 80),
+            "orange": (255, 160, 0),
         }
         SB_W        = 8               # ancho de la scrollbar
         content_y   = rect.y + 24
