@@ -13,203 +13,244 @@ from config import IDE_DARK, IDE_BG, IDE_BORDER, CUI_CYAN, CUI_GREEN, CUI_GRAY, 
 # ═══════════════════════════════════════════════════════
 FILE_CONTENTS: dict[str, list[str]] = {
 
+    # ── OBJETIVO 1: PC reparada ──────────────────────────
     "tutorial_bash.txt": [
         "╔══════════════════════════════════════════════╗",
-        "║      PENGUIN-OS  —  Tutorial de Bash          ║",
+        "║   PENGUIN-OS v0.1  —  SISTEMA RESTAURADO     ║",
+        "║   Estado: REPARADO  |  Bateria: 43%          ║",
         "╠══════════════════════════════════════════════╣",
-        "║  COMANDOS BASICOS:                           ║",
-        "║   pwd          muestra directorio actual     ║",
-        "║   ls           lista archivos del directorio ║",
-        "║   cat <file>   muestra contenido del archivo ║",
-        "║   cd <dir>     cambia de directorio          ║",
-        "║   cd ..        sube un directorio            ║",
-        "║   clear        limpia la pantalla            ║",
-        "║   help         muestra esta ayuda            ║",
         "║                                              ║",
-        "║  EJEMPLO:                                    ║",
-        "║   $ ls                                       ║",
-        "║   $ cat pescar.vim                           ║",
+        "║  Conexion establecida, Pingu-01.             ║",
+        "║  La red esta activa. Podes empezar.          ║",
         "║                                              ║",
-        "║  Los archivos se desbloquean al avanzar.     ║",
+        "║  Tu primer objetivo es simple:               ║",
+        "║  conseguir comida.                           ║",
+        "║                                              ║",
+        "║  Sin peces no hay energia.                   ║",
+        "║  Sin energia no hay colonia.                 ║",
+        "║                                              ║",
+        "║  Escribi esto en tu editor:                  ║",
+        "║                                              ║",
+        "║      pescar()                                ║",
+        "║                                              ║",
+        "║  Clic sobre vos mismo → editor → F5          ║",
+        "║                                              ║",
+        "║  COMANDOS DE ESTA TERMINAL:                  ║",
+        "║   ls      lista archivos disponibles         ║",
+        "║   cat X   muestra el contenido de X          ║",
+        "║   clear   limpia la pantalla                 ║",
+        "║                                              ║",
+        "║  OBJETIVO → Pescar 1 pez                     ║",
         "╚══════════════════════════════════════════════╝",
     ],
 
     "pescar.vim": [
         "╔══════════════════════════════════════════════╗",
-        "║   pescar.vim  —  Tutorial: Como pescar       ║",
+        "║   pescar.vim  —  Referencia rapida           ║",
         "╠══════════════════════════════════════════════╣",
         "║                                              ║",
-        "║  El pinguino puede ir a pescar usando:       ║",
+        "║   pescar()         ir a pescar               ║",
+        "║   talar()          cortar un arbol           ║",
+        "║   picar_hielo()    extraer hielo             ║",
+        "║   almacenar('X')   depositar en almacen      ║",
+        "║   construir_nido(col, fila)  construir iglu  ║",
+        "║   crear_pinguino() nuevo pinguino cyborg     ║",
         "║                                              ║",
-        "║      pescar()                                ║",
+        "║  El pinguino navega SOLO al destino.         ║",
+        "║  Exito de pesca: 40%. Mochila max: 5 items.  ║",
         "║                                              ║",
-        "║  El pinguino navega AUTOMATICAMENTE a la     ║",
-        "║  costa mas cercana y pesca.                  ║",
-        "║                                              ║",
-        "║  Hay un 40% de probabilidad de exito.        ║",
-        "║  Si falla, igual hace el viaje.              ║",
-        "║                                              ║",
-        "║  La mochila del pinguino aguanta max 5 peces.║",
-        "║                                              ║",
-        "║  Abre la ventana del pinguino (clic encima)  ║",
-        "║  y ejecuta:                                  ║",
-        "║      pescar()                                ║",
-        "║                                              ║",
-        "║  [Pesca 1 pez para desbloquear mas archivos] ║",
         "╚══════════════════════════════════════════════╝",
     ],
 
+    # ── OBJETIVO 2: primer pez ───────────────────────────
     "while_loops.txt": [
         "╔══════════════════════════════════════════════╗",
-        "║   while_loops.txt  —  Bucles infinitos       ║",
+        "║   PENGUIN-OS v0.1  —  Registro: 1 pez        ║",
         "╠══════════════════════════════════════════════╣",
         "║                                              ║",
-        "║  Puedes usar while True para automatizar:    ║",
+        "║  Bien. Funciona.                             ║",
+        "║  Ahora aprende a no parar.                   ║",
+        "║                                              ║",
+        "║  Existe una instruccion que repite todo      ║",
+        "║  indefinidamente. Se llama 'while True':     ║",
         "║                                              ║",
         "║      while True:                             ║",
         "║          pescar()                            ║",
         "║                                              ║",
-        "║  El pinguino pescara sin parar!              ║",
-        "║  Usa el boton STOP (F6) para detenerlo.      ║",
+        "║  Esto no se detiene solo.                    ║",
+        "║  Usa F6 para frenar el script.               ║",
         "║                                              ║",
-        "║  Tambien puedes usar for para un numero      ║",
-        "║  fijo de repeticiones:                       ║",
-        "║                                              ║",
-        "║      for i in range(5):                      ║",
-        "║          pescar()                            ║",
-        "║                                              ║",
-        "║  [Pesca 5 peces en total para continuar]     ║",
+        "║  OBJETIVO → Conseguir 5 peces                ║",
+        "║              para habilitar el Almacen       ║",
         "╚══════════════════════════════════════════════╝",
     ],
 
+    # ── OBJETIVO 3: 5 peces ──────────────────────────────
     "almacenar.txt": [
         "╔══════════════════════════════════════════════╗",
-        "║   almacenar.txt  —  Guardar recursos         ║",
+        "║   PENGUIN-OS v0.1  —  Almacen Central ON     ║",
         "╠══════════════════════════════════════════════╣",
         "║                                              ║",
-        "║  La mochila del pinguino tiene max 5 peces.  ║",
-        "║  Cuando se llene, debes almacenarlos:        ║",
+        "║  El almacen esta operativo.                  ║",
+        "║  Un recurso en tu mochila no sirve de nada   ║",
+        "║  si no pasa por el almacen central.          ║",
         "║                                              ║",
-        "║      almacenar('Pez')                        ║",
-        "║                                              ║",
-        "║  El pinguino lleva los peces al almacen      ║",
-        "║  central y los deposita todos de una vez.    ║",
-        "║                                              ║",
-        "║  Patron recomendado:                         ║",
+        "║  Aprende a almacenar:                        ║",
         "║                                              ║",
         "║      while True:                             ║",
         "║          pescar()                            ║",
-        "║          if inventario_lleno('Pez'):         ║",
-        "║              almacenar('Pez')                ║",
+        "║          almacenar('Pez')                    ║",
         "║                                              ║",
-        "║  El almacen guarda hasta 500 de cada recurso.║",
+        "║  El almacen guarda hasta 500 por recurso.    ║",
         "║                                              ║",
-        "║  [Almacena 100 peces para continuar]         ║",
+        "║  OBJETIVO → Almacenar 100 peces              ║",
+        "║              para habilitar el Bosque        ║",
         "╚══════════════════════════════════════════════╝",
     ],
 
+    # ── OBJETIVO 4: 100 peces ────────────────────────────
     "talar.txt": [
         "╔══════════════════════════════════════════════╗",
-        "║   talar.txt  —  Cortar arboles               ║",
+        "║   PENGUIN-OS v0.1  —  Bosque Glacial ON      ║",
         "╠══════════════════════════════════════════════╣",
         "║                                              ║",
-        "║  En la zona del Bosque (derecha del mapa)    ║",
-        "║  hay arboles que puedes talar:               ║",
-        "║                                              ║",
-        "║      talar()                                 ║",
-        "║                                              ║",
-        "║  El pinguino va al arbol mas cercano         ║",
-        "║  y lo corta. El arbol REGENERA en 20s.       ║",
-        "║                                              ║",
-        "║  Para optimizar:                             ║",
+        "║  Los arboles de cristal llevan anos          ║",
+        "║  sin ser talados. Necesitas madera           ║",
+        "║  para construir. Sin construccion,           ║",
+        "║  no hay expansion.                           ║",
         "║                                              ║",
         "║      while True:                             ║",
         "║          talar()                             ║",
-        "║          if inventario_lleno('Madera'):      ║",
-        "║              almacenar('Madera')             ║",
+        "║          almacenar('Madera')                 ║",
         "║                                              ║",
-        "║  [Consigue 150 peces y 150 madera almacenados║",
-        "║   para desbloquear el siguiente tutorial]    ║",
-        "╚══════════════════════════════════════════════╝",
-    ],
-
-    "picar_hielo.txt": [
-        "╔══════════════════════════════════════════════╗",
-        "║   picar_hielo.txt  —  Extraer hielo          ║",
-        "╠══════════════════════════════════════════════╣",
-        "║                                              ║",
-        "║  En la Mina de Hielo (izquierda del mapa)    ║",
-        "║  puedes extraer bloques de hielo:            ║",
-        "║                                              ║",
-        "║      picar_hielo()                           ║",
-        "║                                              ║",
-        "║  El hielo es necesario para construir nidos. ║",
-        "║                                              ║",
-        "║  Script completo de recoleccion:             ║",
+        "║  Podes combinar con la pesca:                ║",
         "║                                              ║",
         "║      while True:                             ║",
-        "║          picar_hielo()                       ║",
-        "║          if inventario_lleno('Hielo'):       ║",
-        "║              almacenar('Hielo')              ║",
+        "║          pescar()                            ║",
+        "║          almacenar('Pez')                    ║",
+        "║          talar()                             ║",
+        "║          almacenar('Madera')                 ║",
         "║                                              ║",
-        "║  [Consigue en el almacen:                    ║",
-        "║   200 peces + 200 madera + 100 hielo         ║",
-        "║   para desbloquear el ultimo tutorial]       ║",
+        "║  OBJETIVO → 150 peces + 150 madera           ║",
+        "║              para habilitar la Mina          ║",
         "╚══════════════════════════════════════════════╝",
     ],
 
-    "construir_nido.txt": [
+    # ── OBJETIVO 5: 150/150 ──────────────────────────────
+    "picar_hielo.txt": [
         "╔══════════════════════════════════════════════╗",
-        "║   construir_nido.txt  —  Nido Cyborg         ║",
+        "║   PENGUIN-OS v0.1  —  Mina de Hielo ON       ║",
         "╠══════════════════════════════════════════════╣",
         "║                                              ║",
-        "║  La zona FABRICA es una MATRIZ de 5x4:       ║",
+        "║  Bajo la superficie hay mineral puro.        ║",
+        "║  El hielo de aca no es agua —                ║",
+        "║  es el material con el que se construyen     ║",
+        "║  las estructuras permanentes.                ║",
+        "║                                              ║",
+        "║      while True:                             ║",
+        "║          pescar()                            ║",
+        "║          almacenar('Pez')                    ║",
+        "║          talar()                             ║",
+        "║          almacenar('Madera')                 ║",
+        "║          picar_hielo()                       ║",
+        "║          almacenar('Hielo')                  ║",
+        "║                                              ║",
+        "║  Este script trabaja los tres recursos.      ║",
+        "║  Dejalo correr y vuelve cuando tengas        ║",
+        "║  suficiente.                                 ║",
+        "║                                              ║",
+        "║  OBJETIVO → 200 peces / 200 madera / 100     ║",
+        "║              hielo para habilitar Iglu       ║",
+        "╚══════════════════════════════════════════════╝",
+    ],
+
+    # ── OBJETIVO 6: 200/200/100 → construir ─────────────
+    "construir_nido.txt": [
+        "╔══════════════════════════════════════════════╗",
+        "║   PENGUIN-OS v0.1  —  Zona de Construccion   ║",
+        "╠══════════════════════════════════════════════╣",
+        "║                                              ║",
+        "║  Tenes los materiales.                       ║",
+        "║  Ahora viene lo importante.                  ║",
+        "║                                              ║",
+        "║  Un iglu no es solo refugio.                 ║",
+        "║  Es infraestructura. Es el nucleo.           ║",
+        "║  Sin el, no podes reproducirte.              ║",
+        "║                                              ║",
+        "║  La zona Iglu es una MATRIZ de 5x4:          ║",
         "║                                              ║",
         "║    col→  0    1    2    3    4               ║",
         "║  fila↓ ┌────┬────┬────┬────┬────┐           ║",
         "║    0   │    │    │    │    │    │           ║",
-        "║        ├────┼────┼────┼────┼────┤           ║",
         "║    1   │    │    │    │    │    │           ║",
-        "║        ├────┼────┼────┼────┼────┤           ║",
         "║    2   │    │    │    │    │    │           ║",
-        "║        ├────┼────┼────┼────┼────┤           ║",
         "║    3   │    │    │    │    │    │           ║",
         "║        └────┴────┴────┴────┴────┘           ║",
-        "║                                              ║",
-        "║  Para construir en (col=2, fila=1):          ║",
         "║                                              ║",
         "║      construir_nido(2, 1)                    ║",
         "║                                              ║",
         "║  COSTO: 50 Madera + 100 Hielo por nido       ║",
         "║                                              ║",
-        "║  Cada celda admite UN nido.                  ║",
-        "║  Si ya hay nido en esa celda, te avisa.      ║",
-        "║                                              ║",
-        "║  Ver: cat crear_pinguino.txt                 ║",
+        "║  OBJETIVO → Construir un iglu                ║",
         "╚══════════════════════════════════════════════╝",
     ],
 
+    # ── OBJETIVO 7: iglu construido ──────────────────────
     "crear_pinguino.txt": [
         "╔══════════════════════════════════════════════╗",
-        "║   crear_pinguino.txt  —  Nueva vida cyborg   ║",
+        "║   PENGUIN-OS v0.1  —  Reproduccion Cyborg    ║",
+        "║   Bateria: 100%  |  Senal: optima            ║",
         "╠══════════════════════════════════════════════╣",
         "║                                              ║",
-        "║  Despues de construir un nido, puedes        ║",
-        "║  crear nuevos pinguinos cyborg:              ║",
+        "║  El iglu esta en pie.                        ║",
+        "║  Ahora podes crear vida.                     ║",
+        "║                                              ║",
+        "║  Cada pinguino nuevo tiene su propio editor. ║",
+        "║  Puede correr su propio script.              ║",
+        "║  Puede trabajar mientras vos descansas.      ║",
         "║                                              ║",
         "║      crear_pinguino()                        ║",
         "║                                              ║",
-        "║  El nuevo pinguino aparece en la zona        ║",
-        "║  de PESCA lista para recibir ordenes.        ║",
+        "║  Una colonia de tres ya puede sostenerse     ║",
+        "║  sola si cada uno tiene su tarea:            ║",
         "║                                              ║",
-        "║  Clic en el nuevo pinguino para abrir        ║",
-        "║  su ventana de comandos individual.          ║",
+        "║   # Pingu-02                                 ║",
+        "║   while True:                                ║",
+        "║       pescar()                               ║",
+        "║       almacenar('Pez')                       ║",
         "║                                              ║",
-        "║  ATENCION: Cada pinguino consume mas hambre! ║",
-        "║  Asegurate de tener peces suficientes.       ║",
+        "║   # Pingu-03                                 ║",
+        "║   while True:                                ║",
+        "║       talar()                                ║",
+        "║       almacenar('Madera')                    ║",
         "║                                              ║",
-        "║  CONSEJO: Asigna tareas distintas a cada     ║",
-        "║  pinguino para maximizar la produccion.      ║",
+        "║  OBJETIVO FINAL → Crear 3 pinguinos          ║",
+        "╚══════════════════════════════════════════════╝",
+    ],
+
+    # ── FIN: 3 pingüinos creados ─────────────────────────
+    "transmision_final.txt": [
+        "╔══════════════════════════════════════════════╗",
+        "║   TRANSMISION FINAL  —  MISION COMPLETADA    ║",
+        "╠══════════════════════════════════════════════╣",
+        "║                                              ║",
+        "║  Tres pinguinos. Un iglu. Una colonia.       ║",
+        "║                                              ║",
+        "║  Empezaste con una PC rota y un comando.     ║",
+        "║  Ahora tenes una red.                        ║",
+        "║                                              ║",
+        "║  No hay mas objetivos despues de este.       ║",
+        "║  A partir de aca, el codigo es tuyo.         ║",
+        "║                                              ║",
+        "║  ==========================================  ║",
+        "║                                              ║",
+        "║   Una colonia que se programa sola           ║",
+        "║   es una colonia que sobrevive.              ║",
+        "║                                              ║",
+        "║  ==========================================  ║",
+        "║                                              ║",
+        "║              FIN DE TRANSMISION              ║",
+        "║                                              ║",
         "╚══════════════════════════════════════════════╝",
     ],
 }
@@ -248,8 +289,9 @@ class ComputerTerminal:
 
         # Output y entrada
         self.output: list[tuple[str, str]] = []  # (texto, color_key)
-        self.inp    = ""
+        self.inp     = ""
         self._history: list[str] = []
+        self._scroll  = 0   # 0 = ver el fondo, positivo = scrolleado hacia arriba
 
         # Posicion y drag
         # Centrado en pantalla — importamos config para obtener dimensiones
@@ -298,6 +340,7 @@ class ComputerTerminal:
     # ── Helpers de output ────────────────────────────
     def _print(self, text: str, color: str = "green"):
         self.output.append((text, color))
+        self._scroll = 0   # auto-scroll al fondo cuando hay output nuevo
 
     def _prompt_line(self) -> str:
         return self.PROMPT
@@ -329,6 +372,16 @@ class ComputerTerminal:
                 self.rect.y = max(0, min(my - self._doy,
                                          WIN_H - self.rect.h))
                 return
+
+        if event.type == pygame.MOUSEWHEEL:
+            if self.rect.collidepoint(pygame.mouse.get_pos()):
+                input_area = 26
+                line_h     = 15
+                avail_h    = self.rect.h - 24 - input_area
+                max_lines  = avail_h // line_h
+                max_scroll = max(0, len(self.output) - max_lines)
+                self._scroll = max(0, min(self._scroll + event.y, max_scroll))
+            return
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -502,7 +555,7 @@ class ComputerTerminal:
                          (rect.x, rect.y + 20),
                          (rect.right, rect.y + 20))
 
-        # Output (scrollado, las ultimas N lineas)
+        # Output con scroll
         COLOR_MAP = {
             "green": CUI_GREEN,
             "cyan":  CUI_CYAN,
@@ -510,19 +563,44 @@ class ComputerTerminal:
             "gray":  (110, 115, 140),
             "red":   (220, 80, 80),
         }
+        SB_W        = 8               # ancho de la scrollbar
         content_y   = rect.y + 24
         input_area  = 26
         avail_h     = rect.h - 24 - input_area
         line_h      = 15
         max_lines   = avail_h // line_h
+        total       = len(self.output)
+        max_scroll  = max(0, total - max_lines)
+        scroll      = min(self._scroll, max_scroll)
 
-        visible = self.output[-max_lines:] if len(self.output) > max_lines else self.output
+        # índice de inicio: scroll=0 → mostrar últimas líneas; scroll>0 → subir
+        start_idx   = max(0, total - max_lines - scroll)
+        visible     = self.output[start_idx:start_idx + max_lines]
+
         y = content_y
         for text, ckey in visible:
             col = COLOR_MAP.get(ckey, CUI_GREEN)
             s   = font.render(text, True, col)
             surface.blit(s, (rect.x + 8, y))
             y += line_h
+
+        # ── Scrollbar vertical ───────────────────────
+        if total > max_lines:
+            sb_x     = rect.right - SB_W - 2
+            sb_y     = content_y
+            sb_h     = avail_h
+            # track
+            pygame.draw.rect(surface, (18, 20, 36),
+                             (sb_x, sb_y, SB_W, sb_h))
+            # thumb
+            ratio    = max_lines / total
+            thumb_h  = max(16, int(sb_h * ratio))
+            pct      = 1.0 - (scroll / max_scroll) if max_scroll else 1.0
+            thumb_y  = sb_y + int(pct * (sb_h - thumb_h))
+            pygame.draw.rect(surface, (70, 85, 130),
+                             (sb_x + 1, thumb_y, SB_W - 2, thumb_h))
+            pygame.draw.rect(surface, (100, 115, 170),
+                             (sb_x + 1, thumb_y, SB_W - 2, thumb_h), 1)
 
         # Linea de input
         sep_y = rect.bottom - input_area

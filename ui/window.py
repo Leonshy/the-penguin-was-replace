@@ -59,6 +59,7 @@ class SimulatedPythonWindow:
         self.scroll:   int               = 0
 
         self.out: list[tuple[str, str]]  = []
+        self.out_scroll: int             = 0   # 0 = fondo, positivo = arriba
 
         self._drag = False
         self._dox  = 0
@@ -160,6 +161,19 @@ class SimulatedPythonWindow:
                 nx = max(0, min(mx - self._dox, WIN_W - self.W))
                 ny = max(0, min(my - self._doy, WIN_H - self.H))
                 self.rect.x, self.rect.y = nx, ny
+
+        elif event.type == pygame.MOUSEWHEEL:
+            mx, my = pygame.mouse.get_pos()
+            if self._r_editor.collidepoint(mx, my):
+                self.scroll = max(0, min(
+                    self.scroll - event.y,
+                    max(0, len(self.lines) - self.EDITOR_LINES)))
+                return True
+            if self._r_output.collidepoint(mx, my):
+                total = len(self.out)
+                max_s = max(0, total - self.OUT_LINES)
+                self.out_scroll = max(0, min(self.out_scroll + event.y, max_s))
+                return True
 
         elif event.type == pygame.KEYDOWN:
             self._handle_key(event)
@@ -499,6 +513,7 @@ class SimulatedPythonWindow:
                          (er.x + _LNPAD, er.y),
                          (er.x + _LNPAD, er.bottom))
 
+        SB_W = 8
         for vi in range(self.EDITOR_LINES):
             li = self.scroll + vi
             if li >= len(self.lines): break
@@ -506,7 +521,7 @@ class SimulatedPythonWindow:
             if li == self.cur_ln:
                 pygame.draw.rect(surface, IDE_HL,
                                  (er.x + _LNPAD + 1, ly - 1,
-                                  self.W - _LNPAD - 2, _LINE_H + 1))
+                                  self.W - _LNPAD - SB_W - 2, _LINE_H + 1))
             ln_s = fsm.render(str(li + 1), True, (88, 94, 132))
             surface.blit(ln_s,
                          ln_s.get_rect(right=er.x + _LNPAD - 4, top=ly + 1))
@@ -521,6 +536,23 @@ class SimulatedPythonWindow:
                 pygame.draw.line(surface, IDE_CURSOR,
                                  (cx, ly), (cx, ly + _LINE_H - 2), 2)
 
+        # Scrollbar del editor
+        total_lines = len(self.lines)
+        if total_lines > self.EDITOR_LINES:
+            sb_x    = er.right - SB_W - 1
+            sb_y    = er.y + 1
+            sb_h    = er.h - 2
+            pygame.draw.rect(surface, (20, 22, 36), (sb_x, sb_y, SB_W, sb_h))
+            ratio   = self.EDITOR_LINES / total_lines
+            thumb_h = max(16, int(sb_h * ratio))
+            max_s   = total_lines - self.EDITOR_LINES
+            pct     = self.scroll / max_s if max_s else 0
+            thumb_y = sb_y + int(pct * (sb_h - thumb_h))
+            pygame.draw.rect(surface, (70, 85, 130),
+                             (sb_x + 1, thumb_y, SB_W - 2, thumb_h))
+            pygame.draw.rect(surface, (100, 115, 170),
+                             (sb_x + 1, thumb_y, SB_W - 2, thumb_h), 1)
+
         # ── Output ──────────────────────────────────
         sep_y = er.bottom
         pygame.draw.line(surface, IDE_SEP, (r.x, sep_y), (r.right, sep_y), self.SEP_H)
@@ -532,12 +564,31 @@ class SimulatedPythonWindow:
         outr = self._r_output
         pygame.draw.rect(surface, IDE_OUT, outr)
         if self.out:
+            total_out  = len(self.out)
+            max_out_s  = max(0, total_out - self.OUT_LINES)
+            out_scroll = min(self.out_scroll, max_out_s)
+            start_out  = max(0, total_out - self.OUT_LINES - out_scroll)
+            visible_out = self.out[start_out:start_out + self.OUT_LINES]
             oy = outr.y + 4
-            for text, kind in self.out[-self.OUT_LINES:]:
+            for text, kind in visible_out:
                 col_s = SYN_OK if kind == "ok" else SYN_ERR
                 surface.blit(fc.render(text, True, col_s),
                              (outr.x + 8, oy))
                 oy += _LINE_H
+            # Scrollbar del output
+            if total_out > self.OUT_LINES:
+                sb_x    = outr.right - SB_W - 1
+                sb_y    = outr.y + 1
+                sb_h    = outr.h - 2
+                pygame.draw.rect(surface, (14, 15, 26), (sb_x, sb_y, SB_W, sb_h))
+                ratio   = self.OUT_LINES / total_out
+                thumb_h = max(12, int(sb_h * ratio))
+                pct     = 1.0 - (out_scroll / max_out_s) if max_out_s else 1.0
+                thumb_y = sb_y + int(pct * (sb_h - thumb_h))
+                pygame.draw.rect(surface, (70, 85, 130),
+                                 (sb_x + 1, thumb_y, SB_W - 2, thumb_h))
+                pygame.draw.rect(surface, (100, 115, 170),
+                                 (sb_x + 1, thumb_y, SB_W - 2, thumb_h), 1)
         else:
             surface.blit(
                 fsm.render("(sin output — F5 ejecutar)",

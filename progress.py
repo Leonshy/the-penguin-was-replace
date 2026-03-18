@@ -34,6 +34,11 @@ class ProgressTracker:
         self.fish_caught_total += 1
         self._check()
 
+    def on_penguin_created(self, total: int):
+        """Llamar cada vez que se crea un pingüino nuevo."""
+        if total >= 3:
+            self._unlock("transmision_final.txt")
+
     def on_pc_repaired(self):
         """Llamar cuando el jugador repara la PC."""
         self._unlock("tutorial_bash.txt")

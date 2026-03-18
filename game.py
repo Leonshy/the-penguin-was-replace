@@ -19,6 +19,7 @@ from penguin import Penguin
 from colony import Colony
 from ui.window import SimulatedPythonWindow
 from ui.terminal import ComputerTerminal
+from ui.intro import IntroScreen
 from progress import ProgressTracker
 
 CAM_SPEED   = 4
@@ -61,6 +62,7 @@ class Game:
 
         self._event_msgs: list[tuple[str, float, tuple]] = []
         self._last_ms = pygame.time.get_ticks()
+        self._intro = IntroScreen()
         self._spawn(7, 9, "Pingu-01")
         self._center_camera()
 
@@ -229,6 +231,7 @@ class Game:
                 if p.row <= 5 and p.col >= 14:
                     nuevo = self._spawn(7, 9)
                     self._push_msg(f"+ {nuevo.nombre} creado!", (80, 220, 80), 3000)
+                    self.progress.on_penguin_created(len(self.penguins))
 
         self.penguins = [p for p in self.penguins if p.alive]
 
@@ -415,9 +418,12 @@ class Game:
     def run(self):
         while self.running:
             try:
-                self.handle_events()
-                self.update()
-                self.draw()
+                if not self._intro.done:
+                    self._run_intro_frame()
+                else:
+                    self.handle_events()
+                    self.update()
+                    self.draw()
             except Exception:
                 print("=" * 60)
                 traceback.print_exc()
@@ -430,6 +436,15 @@ class Game:
                     pass
             self.clock.tick(FPS)
         self._quit()
+
+    def _run_intro_frame(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self._quit()
+                return
+            self._intro.handle_event(event)
+        self._intro.draw(self.screen)
+        pygame.display.flip()
 
     def _quit(self):
         for p in self.penguins:
