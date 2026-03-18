@@ -1,0 +1,36 @@
+{
+  "cam_col": 2,
+  "cam_row": 2,
+  "inventory": {
+    "Pez": 0,
+    "Madera": 0,
+    "Hielo": 0
+  },
+  "progress": {
+    "fish_caught_total": 0,
+    "unlocked": []
+  },
+  "world": {
+    "unlocked_zones": [
+      "costa",
+      "f_pesca",
+      "agua"
+    ],
+    "nidos": []
+  },
+  "colony": {
+    "hunger": 55.597000000000136,
+    "nidos": 0
+  },
+  "penguins": [
+    {
+      "nombre": "Pingu-01",
+      "row": 7,
+      "col": 9
+    }
+  ],
+  "terminal": {
+    "estado": "offline",
+    "unlocked_files": []
+  }
+}

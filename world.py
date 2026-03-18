@@ -259,6 +259,13 @@ def _draw_tile_16(s: pygame.Surface, tipo: str):
                 c = (26, 26, 36) if (x+y)%8==0 else (14, 14, 22)
                 _rect(s, x, y, 4, 4, c)
 
+    elif tipo == "fog":
+        s.fill((6, 8, 14))
+        for y in range(0, 16, 4):
+            for x in range(0, 16, 4):
+                c = (14, 16, 26) if (x + y) % 8 == 0 else (8, 10, 18)
+                _rect(s, x, y, 4, 4, c)
+
     else:
         s.fill(TILE_COLORS.get(tipo, (22, 22, 28)))
 
@@ -338,7 +345,13 @@ class World:
             for r in range(WH)
         ]
         self._regrow_queue: list[tuple[float, int, int]] = []
+        # Zonas visibles al jugador — el resto se muestra como niebla
+        self.unlocked_zones: set[str] = {"f_pesca", "costa", "agua"}
         self._build()
+
+    def unlock_zone(self, zone: str):
+        """Revela una zona del mapa."""
+        self.unlocked_zones.add(zone)
 
     def _build(self):
         g = self.grid
@@ -469,10 +482,9 @@ class World:
             for vc in range(_vw):
                 wr, wc = cam_row + vr, cam_col + vc
                 if 0 <= wr < WH and 0 <= wc < WW:
-                    self.grid[wr][wc].draw(
-                        surface,
-                        vc * ts,
-                        vr * ts + HUD_H,
-                        font,
-                        ts,
-                    )
+                    x = vc * ts
+                    y = vr * ts + HUD_H
+                    if get_zone(wr, wc) in self.unlocked_zones:
+                        self.grid[wr][wc].draw(surface, x, y, font, ts)
+                    else:
+                        surface.blit(get_tile_surface("fog", ts), (x, y))

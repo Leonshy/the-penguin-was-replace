@@ -47,11 +47,11 @@ class ProgressTracker:
 
     def check_storage(self, fish: int, wood: int, ice: int):
         """Llamar cada frame con los valores actuales del almacen."""
-        if fish >= 100:
+        if fish >= 35:
             self._unlock("talar.txt")
-        if fish >= 150 and wood >= 150:
+        if fish >= 70 and wood >= 35:
             self._unlock("picar_hielo.txt")
-        if fish >= 200 and wood >= 200 and ice >= 100:
+        if fish >= 100 and wood >= 70 and ice >= 50:
             self._unlock("construir_nido.txt")
             self._unlock("crear_pinguino.txt")
 

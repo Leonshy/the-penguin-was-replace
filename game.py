@@ -13,14 +13,16 @@ from config import (
     COMP_POSITIONS,
     HUNGER_MAX,
 )
-from world import World, clear_tile_cache
+from world import World, Tile, clear_tile_cache
 from inventory import Inventory
 from penguin import Penguin
 from colony import Colony
 from ui.window import SimulatedPythonWindow
 from ui.terminal import ComputerTerminal
 from ui.intro import IntroScreen
+from ui.menu import MainMenu
 from progress import ProgressTracker
+from save import save_game, load_game, save_exists
 
 CAM_SPEED   = 4
 ZOOM_LEVELS = [16, 24, 32, 48, 64, 80]   # tamaños de tile disponibles
@@ -64,6 +66,8 @@ class Game:
         self._obj_notif: tuple | None = None   # (linea1, linea2, expire_ms)
         self._last_ms = pygame.time.get_ticks()
         self._intro = IntroScreen()
+        self._menu  = MainMenu()
+        self._state = "menu"   # "menu" | "intro" | "game"
         self.progress.on_unlock = self._on_objective_unlocked
         self._spawn(7, 9, "Pingu-01")
         self._center_camera()
@@ -128,11 +132,21 @@ class Game:
         "transmision_final.txt": ("MISION COMPLETADA!", "La colonia sobrevive"),
     }
 
+    _ZONE_UNLOCKS = {
+        "almacenar.txt":      ["f_almacen"],
+        "talar.txt":          ["f_bosque"],
+        "picar_hielo.txt":    ["f_mina"],
+        "construir_nido.txt": ["f_fabrica"],
+    }
+
     def _on_objective_unlocked(self, filename: str):
         title, desc = self._OBJECTIVE_NAMES.get(
             filename, ("NUEVO OBJETIVO", filename))
         expire = pygame.time.get_ticks() + 5000
         self._obj_notif = (title, desc, expire)
+
+        for zone in self._ZONE_UNLOCKS.get(filename, []):
+            self.world.unlock_zone(zone)
 
     # ── Helpers ─────────────────────────────────────────
     def _spawn(self, row, col, nombre=None) -> Penguin:
@@ -175,6 +189,10 @@ class Game:
                 continue
 
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self._state = "menu"
+                    self._menu.reset_sel()
+                    continue
                 if event.key == pygame.K_f:
                     self._toggle_fullscreen()
                 elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
@@ -501,11 +519,73 @@ class Game:
             self.screen.blit(s, (cx + 6, y))
             y += s.get_height() + 6
 
+    # ── Guardar / Cargar ─────────────────────────────────
+    def _do_save(self):
+        ok = save_game(self)
+        self._menu.set_message("Partida guardada!" if ok else "Error al guardar.", ok=ok)
+
+    def _do_load(self):
+        data = load_game()
+        if data is None:
+            self._menu.set_message("No hay partida guardada.", ok=False)
+            return
+        self._apply_save(data)
+        self._state = "game"
+        self._menu.game_active = True
+
+    def _apply_save(self, data: dict):
+        # Detener scripts actuales
+        for p in self.penguins:
+            p.stop_script()
+        self.penguins = []
+
+        # Cámara
+        self.cam_col = data.get("cam_col", 0)
+        self.cam_row = data.get("cam_row", 0)
+
+        # Inventario
+        for nombre, qty in data.get("inventory", {}).items():
+            r = self.inventory.rs.get(nombre)
+            if r:
+                r.cantidad = qty
+
+        # Progreso
+        prog = data.get("progress", {})
+        self.progress.fish_caught_total = prog.get("fish_caught_total", 0)
+        self.progress._unlocked = set(prog.get("unlocked", []))
+
+        # Mundo: zonas + nidos
+        world_data = data.get("world", {})
+        self.world.unlocked_zones = set(
+            world_data.get("unlocked_zones", ["f_pesca", "costa", "agua"]))
+        for r, c in world_data.get("nidos", []):
+            self.world.grid[r][c] = Tile("nido")
+
+        # Colonia
+        col = data.get("colony", {})
+        self.colony.hunger = col.get("hunger", 100.0)
+        self.colony.nidos  = col.get("nidos", 0)
+
+        # Pingüinos
+        for pd in data.get("penguins", []):
+            self._spawn(pd["row"], pd["col"], pd["nombre"])
+
+        # Terminal
+        term = data.get("terminal", {})
+        comp = self.computers[0]
+        comp.estado          = term.get("estado", "offline")
+        comp._unlocked_files = set(term.get("unlocked_files", []))
+        self.progress.terminal = comp
+
+        self._clamp_camera()
+
     # ── Loop ─────────────────────────────────────────────
     def run(self):
         while self.running:
             try:
-                if not self._intro.done:
+                if self._state == "menu":
+                    self._run_menu_frame()
+                elif self._state == "intro":
                     self._run_intro_frame()
                 else:
                     self.handle_events()
@@ -524,14 +604,43 @@ class Game:
             self.clock.tick(FPS)
         self._quit()
 
+    def _run_menu_frame(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self._quit()
+                return
+            action = self._menu.handle_event(event)
+            if action == "start":
+                self._intro = IntroScreen()
+                self._state = "intro"
+                self._menu.game_active = True
+            elif action == "continue":
+                self._state = "game"
+            elif action == "save":
+                if self._menu.game_active:
+                    self._do_save()
+                else:
+                    self._menu.set_message("Inicia una partida primero.", ok=False)
+            elif action == "load":
+                self._do_load()
+            elif action == "exit":
+                self._quit()
+        self._menu.draw(self.screen)
+        pygame.display.flip()
+
     def _run_intro_frame(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._quit()
                 return
-            self._intro.handle_event(event)
-        self._intro.draw(self.screen)
-        pygame.display.flip()
+            done = self._intro.handle_event(event)
+            if done:
+                self._state = "game"
+        if self._intro.done:
+            self._state = "game"
+        else:
+            self._intro.draw(self.screen)
+            pygame.display.flip()
 
     def _quit(self):
         for p in self.penguins:
