@@ -125,12 +125,15 @@ class MainMenu:
         sub = self._font_sub.render("hackathon edition  —  v0.1", True, (45, 90, 90))
         surface.blit(sub, (WIN_W // 2 - sub.get_width() // 2, 130))
 
+        demo = self._font_item.render("[ DEMO ]", True, (180, 60, 60))
+        surface.blit(demo, (WIN_W // 2 - demo.get_width() // 2, 150))
+
         pygame.draw.line(surface, (0, 70, 70),
-                         (WIN_W // 2 - 170, 150), (WIN_W // 2 + 170, 150))
+                         (WIN_W // 2 - 170, 176), (WIN_W // 2 + 170, 176))
 
         # Ítems
         ITEM_H = 50
-        item_y = 170
+        item_y = 192
         for i, (label, action, locked) in enumerate(items):
             rect = pygame.Rect(WIN_W // 2 - 170, item_y - 2, 340, ITEM_H - 6)
             self._item_rects.append(rect)

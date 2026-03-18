@@ -39,7 +39,13 @@ def save_game(game) -> bool:
                 "nidos":  game.colony.nidos,
             },
             "penguins": [
-                {"nombre": p.nombre, "row": p.row, "col": p.col}
+                {
+                    "nombre":  p.nombre,
+                    "row":     p.row,
+                    "col":     p.col,
+                    "script":  "\n".join(p.win.lines) if p.win else "",
+                    "running": bool(p.win and p.win.running),
+                }
                 for p in game.penguins if p.alive
             ],
             "terminal": {

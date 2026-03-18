@@ -374,14 +374,13 @@ class Game:
             True, eat_col)
         self.screen.blit(eat_lbl, (FISH_BAR_X + BAR_W + 8, FISH_BAR_Y - 2))
 
-        # Advertencia crítica parpadeante
+        # Advertencia crítica parpadeante (reemplaza el subtítulo)
         if h_pct < 0.2 and (pygame.time.get_ticks() // 400) % 2 == 0:
             warn = self.font_hud.render("⚠ HAMBRE CRITICA!", True, CUI_RED)
-            self.screen.blit(warn, (BAR_X, FISH_BAR_Y + 8))
+            self.screen.blit(warn, (BAR_X, 28))
 
-        # ── Inventario global ────────────────────────────
-        # Panel separador
-        sep_x = WIN_W // 2 - 60
+        # ── Inventario global (columna vertical) ─────────
+        sep_x = WIN_W // 3
         pygame.draw.line(self.screen, (40, 44, 80), (sep_x, 8), (sep_x, HUD_H-8))
 
         inv_items = [
@@ -389,18 +388,11 @@ class Game:
             ("🪵 Madera", self.inventory.obtener("Madera"), (160, 100, 40)),
             ("🧊 Hielo",  self.inventory.obtener("Hielo"),  (180, 230, 255)),
         ]
-        inv_x = sep_x + 16
-        for label, qty, col in inv_items:
-            full_label = f"{label}: {qty}/500"
-            s = self.font_hud.render(full_label, True, col)
-            self.screen.blit(s, (inv_x, 10))
-            # Mini barra de recurso
-            bpct = qty / 500
-            pygame.draw.rect(self.screen, (24, 24, 40), (inv_x, 26, 80, 4))
-            bw = int(bpct * 80)
-            if bw > 0:
-                pygame.draw.rect(self.screen, col, (inv_x, 26, bw, 4))
-            inv_x += 110
+        inv_x = sep_x + 14
+        for i, (label, qty, col) in enumerate(inv_items):
+            y = 7 + i * 23
+            s = self.font_hud.render(f"{label}: {qty}/500", True, col)
+            self.screen.blit(s, (inv_x, y))
 
         # ── Pingüino seleccionado ────────────────────────
         sel = next((p for p in self.penguins if p.selected), None)
@@ -421,7 +413,7 @@ class Game:
             self.screen.blit(mochila, (panel_x, 36))
             # Cantidad de pingüinos
             cnt_s = self.font_sm.render(
-                f"🐧 x{len(self.penguins)}  | Clic→editor | F5 run | F6 stop",
+                f"🐧 x{len(self.penguins)}  | Clic→editor | F5 ejecutar | F6 detener",
                 True, (100, 110, 160))
             self.screen.blit(cnt_s, (panel_x, 52))
         else:
@@ -568,7 +560,15 @@ class Game:
 
         # Pingüinos
         for pd in data.get("penguins", []):
-            self._spawn(pd["row"], pd["col"], pd["nombre"])
+            p = self._spawn(pd["row"], pd["col"], pd["nombre"])
+            script = pd.get("script", "").strip()
+            if script:
+                p.win = SimulatedPythonWindow(p)
+                p.win.lines   = script.split("\n")
+                p.win.cur_ln  = 0
+                p.win.cur_col = 0
+                if pd.get("running", False):
+                    p.win._run()
 
         # Terminal
         term = data.get("terminal", {})

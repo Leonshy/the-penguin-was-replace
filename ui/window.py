@@ -493,7 +493,7 @@ class SimulatedPythonWindow:
         btn("▶  Ejecutar  (F5)",  bx,       126, run_bg)
         bx += 134
         stop_bg = (140, 40, 40) if self.running else (60, 50, 50)
-        btn("■  Stop  (F6)",      bx,        90, stop_bg,
+        btn("■  Detener (F6)",     bx,        90, stop_bg,
             (255, 100, 100) if self.running else (100, 80, 80))
         bx += 98
         btn("Limpiar",             bx,        72, (48, 48, 82))
@@ -502,7 +502,7 @@ class SimulatedPythonWindow:
         if self.running:
             t_ms   = pygame.time.get_ticks()
             dots   = "." * ((t_ms // 400) % 4)
-            run_s  = fsm.render(f"  RUNNING{dots}", True, (80, 220, 100))
+            run_s  = fsm.render(f"  EJECUTANDO{dots}", True, (80, 220, 100))
             surface.blit(run_s, (r.x + 360, tbr.y + 9))
 
         # ── Editor ──────────────────────────────────
@@ -558,7 +558,7 @@ class SimulatedPythonWindow:
         pygame.draw.line(surface, IDE_SEP, (r.x, sep_y), (r.right, sep_y), self.SEP_H)
         oh_y = sep_y + self.SEP_H
         pygame.draw.rect(surface, IDE_DARK, (r.x, oh_y, self.W, self.OUT_HDR_H))
-        surface.blit(fsm.render("  Output", True, (108, 112, 158)),
+        surface.blit(fsm.render("  Salida", True, (108, 112, 158)),
                      (r.x + 6, oh_y + 3))
 
         outr = self._r_output
@@ -599,7 +599,7 @@ class SimulatedPythonWindow:
         str_r = self._r_status
         pygame.draw.rect(surface, IDE_DARK, str_r)
         pygame.draw.line(surface, IDE_SEP, str_r.topleft, str_r.topright)
-        st_txt = (f"  RUNNING — F6 para detener"
+        st_txt = (f"  EJECUTANDO — F6 para detener"
                   if self.running else
                   f"  Ln {self.cur_ln+1}  Col {self.cur_col+1}"
                   f"   |  {len(self.lines)} lineas")

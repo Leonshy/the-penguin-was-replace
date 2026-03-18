@@ -56,9 +56,10 @@ class Colony:
                                   self.hunger + HUNGER_PER_FISH)
                 ate_fish = True
 
-        # Si no hubo pez en este ciclo, la barra baja — escalada por pinguinos
-        # Cada pinguino adicional aumenta el drain: 1 ping=1x, 2=1.5x, 3=2x...
-        if not ate_fish:
+        # Si no hubo pez en este ciclo, la barra baja — solo si algún pingüino
+        # está ejecutando un script (inactivos no consumen energía).
+        any_running = any(p.win and p.win.running for p in penguins)
+        if not ate_fish and any_running:
             fish_en_almacen = (self.inventory.obtener("Pez") > 0
                                if self.inventory else False)
             if not fish_en_almacen:

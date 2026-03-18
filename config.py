@@ -24,7 +24,7 @@ CUI_BG     = (  6,   8,  18)
 CUI_WHITE  = (224, 228, 248)
 CUI_CYAN   = (  0, 220, 220)
 CUI_GREEN  = ( 48, 210,  88)
-CUI_GRAY   = ( 72,  76, 104)
+CUI_GRAY   = (180, 190, 220)
 CUI_ORANGE = (255, 168,  40)
 CUI_RED    = (224,  56,  56)
 CUI_BLACK  = (  0,   0,   0)
@@ -105,7 +105,7 @@ COMP_POSITIONS = [(7, 10)]
 # ── Hambre ──────────────────────────────────────────────
 HUNGER_MAX        = 100.0
 HUNGER_PER_FISH   = 20.0
-HUNGER_DRAIN_SEC  = 3.0
+HUNGER_DRAIN_SEC  = 1.0
 FISH_CONSUME_SEC  = 10.0
 HUNGER_DEATH_MS   = 10_000
 
