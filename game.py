@@ -61,8 +61,10 @@ class Game:
         self._zoom_idx  = 4           # índice en ZOOM_LEVELS → empieza en T=64
 
         self._event_msgs: list[tuple[str, float, tuple]] = []
+        self._obj_notif: tuple | None = None   # (linea1, linea2, expire_ms)
         self._last_ms = pygame.time.get_ticks()
         self._intro = IntroScreen()
+        self.progress.on_unlock = self._on_objective_unlocked
         self._spawn(7, 9, "Pingu-01")
         self._center_camera()
 
@@ -112,6 +114,25 @@ class Game:
         else:
             self.cam_row = max(-MAP_PADDING,
                                min(self.cam_row, WH - self.VH + MAP_PADDING))
+
+    # ── Notificaciones de objetivo ───────────────────────
+    _OBJECTIVE_NAMES = {
+        "tutorial_bash.txt":  ("PC REPARADA",          "Lee el tutorial en la terminal"),
+        "pescar.vim":         ("COMANDOS DISPONIBLES",  "Referencia rapida de comandos"),
+        "while_loops.txt":    ("OBJETIVO 2",            "Aprende los bucles — while True"),
+        "almacenar.txt":      ("ALMACEN CENTRAL ON",    "Guarda recursos en el almacen"),
+        "talar.txt":          ("BOSQUE GLACIAL ON",     "Tala arboles para conseguir madera"),
+        "picar_hielo.txt":    ("MINA DE HIELO ON",      "Extrae hielo del subsuelo"),
+        "construir_nido.txt": ("ZONA DE CONSTRUCCION",  "Construi tu primer iglu"),
+        "crear_pinguino.txt": ("REPRODUCCION HABILITADA","Crea nuevos pinguinos cyborg"),
+        "transmision_final.txt": ("MISION COMPLETADA!", "La colonia sobrevive"),
+    }
+
+    def _on_objective_unlocked(self, filename: str):
+        title, desc = self._OBJECTIVE_NAMES.get(
+            filename, ("NUEVO OBJETIVO", filename))
+        expire = pygame.time.get_ticks() + 5000
+        self._obj_notif = (title, desc, expire)
 
     # ── Helpers ─────────────────────────────────────────
     def _spawn(self, row, col, nombre=None) -> Penguin:
@@ -188,6 +209,7 @@ class Game:
             if comp.row == wr and comp.col == wc:
                 self.active_comp = comp
                 comp.show = True
+                comp.on_open()
                 return
 
     # ── Update ──────────────────────────────────────────
@@ -259,7 +281,10 @@ class Game:
                    tile_size=self.T, vw=self.VW, vh=self.VH)
         for comp in self.computers:
             comp.draw(self.screen, self.font_sm)
+            comp.draw_world_indicator(self.screen, self.cam_col, self.cam_row,
+                                      self.font_sm, self.T, self.VW, self.VH, HUD_H)
         self._draw_hud()
+        self._draw_obj_notif()
         self._draw_event_msgs()
         if self.active_win and self.active_win.active:
             self.active_win.draw(self.screen)
@@ -384,6 +409,22 @@ class Game:
             cnt_s = self.font_sm.render(f"Pingüinos: {len(self.penguins)}", True, CUI_WHITE)
             self.screen.blit(cnt_s, (panel_x, 38))
 
+        # ── Banner "!" objetivo sin leer ────────────────
+        if any(c.has_unread for c in self.computers):
+            if (pygame.time.get_ticks() // 450) % 2 == 0:
+                notif_s = self.font_hud.render(
+                    "!  NUEVO OBJETIVO  —  Acercate a la PC",
+                    True, (255, 180, 0))
+                nx = WIN_W // 2 - notif_s.get_width() // 2
+                bg = pygame.Surface((notif_s.get_width() + 16, notif_s.get_height() + 4))
+                bg.fill((40, 20, 0))
+                bg.set_alpha(220)
+                self.screen.blit(bg, (nx - 8, HUD_H - notif_s.get_height() - 6))
+                pygame.draw.rect(self.screen, (200, 100, 0),
+                                 (nx - 8, HUD_H - notif_s.get_height() - 6,
+                                  notif_s.get_width() + 16, notif_s.get_height() + 4), 1)
+                self.screen.blit(notif_s, (nx, HUD_H - notif_s.get_height() - 4))
+
         # ── Barra inferior ───────────────────────────────
         bar_y = WIN_H - BAR_H
         pygame.draw.rect(self.screen, (6, 8, 18), (0, bar_y, WIN_W, BAR_H))
@@ -394,6 +435,49 @@ class Game:
         )
         help_s = self.font_sm.render(help_txt, True, (56, 62, 96))
         self.screen.blit(help_s, (6, bar_y + 4))
+
+    # ── Popup de objetivo desbloqueado ───────────────────
+    def _draw_obj_notif(self):
+        if not self._obj_notif:
+            return
+        title, desc, expire = self._obj_notif
+        now = pygame.time.get_ticks()
+        if now > expire:
+            self._obj_notif = None
+            return
+
+        # Fade out en el último segundo
+        remaining = expire - now
+        alpha = min(255, int(remaining / 300 * 255))
+
+        W, H = 380, 66
+        x = WIN_W // 2 - W // 2
+        y = HUD_H + 12
+
+        bg = pygame.Surface((W, H), pygame.SRCALPHA)
+        bg.fill((10, 16, 30, min(alpha, 220)))
+        self.screen.blit(bg, (x, y))
+
+        border_col = tuple(int(c * alpha / 255) for c in (0, 200, 200))
+        pygame.draw.rect(self.screen, border_col, (x, y, W, H), 2)
+
+        # Barra izquierda de acento
+        accent = tuple(int(c * alpha / 255) for c in (255, 160, 0))
+        pygame.draw.rect(self.screen, accent, (x, y, 4, H))
+
+        title_col = tuple(int(c * alpha / 255) for c in (255, 200, 60))
+        desc_col  = tuple(int(c * alpha / 255) for c in (180, 210, 240))
+
+        self.screen.blit(
+            self.font_hud.render(f"  {title}", True, title_col),
+            (x + 10, y + 10))
+        self.screen.blit(
+            self.font_sm.render(f"  {desc}", True, desc_col),
+            (x + 10, y + 32))
+        self.screen.blit(
+            self.font_sm.render("  Abrí la PC para ver el objetivo completo",
+                                True, tuple(int(c * alpha / 255) for c in (80, 100, 140))),
+            (x + 10, y + 48))
 
     # ── Mensajes flotantes ───────────────────────────────
     def _draw_event_msgs(self):

@@ -26,7 +26,8 @@ class ProgressTracker:
         self._unlocked: set[str] = set()
 
         # Referencia a la terminal (se asigna en Game.__init__)
-        self.terminal = None
+        self.terminal   = None
+        self.on_unlock  = None   # callback(filename) — se asigna en Game.__init__
 
     # ── Notificacion de progreso ─────────────────────
     def on_fish_caught(self):
@@ -66,3 +67,5 @@ class ProgressTracker:
             self._unlocked.add(filename)
             if self.terminal:
                 self.terminal.unlock_file(filename)
+            if self.on_unlock:
+                self.on_unlock(filename)
